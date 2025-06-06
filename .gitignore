@@ -1,0 +1,6 @@
+data/
+outputs/
+.Rproj.user
+*.err
+*.out
+nimble
