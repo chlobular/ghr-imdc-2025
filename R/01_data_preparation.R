@@ -7,8 +7,8 @@
 # 
 # Script authors:
 #     Carles Milà  (carles.milagarcia@bsc.es)
-#     Chloe Fletcher        (chloe.fletcher@bsc.es)
-#     Rachel Lowe     (rachel.lowe@bsc.es)
+#     Chloe Fletcher  (chloe.fletcher@bsc.es)
+#     Rachel Lowe  (rachel.lowe@bsc.es)
 # ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ## 1. Setup ----------------------------
@@ -49,16 +49,16 @@ dengue_week <- dengue_week |>
   mutate(epi_year = ifelse(as.numeric(substr(epiweek,5,6)) <= 40,
          epi_year, epi_year + 1 ))
 
-# 3. Generated climate covs -----
+# 3. Climate covariates -----
 
 # read in raw monthly climatic data and merge to dengue data
-clim_data <- read.csv("data/raw-monthly/brazil_monthly_hist_200901-202504.csv")
+clim_data <- read.csv("data/raw-monthly/brazil_monthly_hist_200801-202505.csv")
 clim_data <- clim_data |>
   select(-adm_name) |> 
   rename(regional_geocode = adm_id)
 glimpse(clim_data)
 
-# Scale tas and plrl variables
+# Scale tas and prlr variables
 vars_scale <- c("tas", "tasmin", "tasmax","prlr")
 vars_scaled <- scale(clim_data[,c(vars_scale)])
 scale_params <- list("mu" = attributes(vars_scaled)[[3]],
@@ -74,15 +74,15 @@ clim_data <- clim_data |>
   mutate(tas3 = rollmean(tas, 3, fill = NA, align = "right"),
          tasmin3 = rollmean(tasmin, 3, fill = NA, align = "right"),
          tasmax3 = rollmean(tasmax, 3, fill = NA, align = "right"),
-         plrl3 = rollsum(prlr, 3, fill = NA, align = "right"),
+         prlr3 = rollsum(prlr, 3, fill = NA, align = "right"),
          tas6 = rollmean(tas, 6, fill = NA, align = "right"),
          tasmin6 = rollmean(tasmin, 6, fill = NA, align = "right"),
          tasmax6 = rollmean(tasmax, 6, fill = NA, align = "right"),
-         plrl6 = rollsum(prlr, 6, fill = NA, align = "right"),
+         prlr6 = rollsum(prlr, 6, fill = NA, align = "right"),
          tas12 = rollmean(tas, 12, fill = NA, align = "right"),
          tasmin12 = rollmean(tasmin, 12, fill = NA, align = "right"),
          tasmax12 = rollmean(tasmax, 12, fill = NA, align = "right"),
-         plrl12 = rollsum(prlr, 12, fill = NA, align = "right"),
+         prlr12 = rollsum(prlr, 12, fill = NA, align = "right"),
          nino6 = rollmean(nino, 6, fill = NA, align = "right"),
          nino12 = rollmean(nino, 12, fill = NA, align = "right"))
 
@@ -108,10 +108,9 @@ clim_data <- lag_cov(data = clim_data,
                      time = "date",
                      group = "regional_geocode",
                      name = vlag,
-                     lag = c(1, 3, 6),
+                     lag = 1:6,
                      add = TRUE)
 clim_data$date <- NULL
-
 
 # 5. Challenge covs ----
 
