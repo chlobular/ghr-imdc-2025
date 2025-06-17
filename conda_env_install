@@ -1,0 +1,15 @@
+# HUB
+conda config --set ssl_verify false
+mamba create -n sprint2025
+mamba init
+exit
+(login)
+mamba activate sprint2025
+mamba install r-base=4.4.1 r-essentials -c conda-forge --override-channels
+R
+.libPaths()
+.libPaths(c(file.path(Sys.getenv("CONDA_PREFIX"), "lib/R/library"), .libPaths()))
+install.packages("INLA", repos = c(getOption("repos"), INLA = "https://inla.r-inla-download.org/R/stable"))
+
+
+# Other r-packages need to be installed with mamba install, INLA is an exception because it is in bioconductor

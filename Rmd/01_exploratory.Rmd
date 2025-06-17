@@ -1,0 +1,81 @@
+---
+title: "Exploratory analysis"
+author: "Carles Milà"
+date: "2025-06-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center")
+
+
+library("dplyr")
+library("sf")
+library("GHRexplore", lib.loc = "/home/Earth/cmilagar/library/")
+library("here")
+
+# Env: HUB with module R-bundle-CRAN/2024.06-foss-2023b
+```
+
+```{r Read data}
+dengue_data <- read.csv(here("data", "processed", "weekly_data.csv"))
+states <- read_sf(here("data", "boundaries", "brazil_states.gpkg"))
+```
+
+# Time series
+
+## Cases
+
+```{r TS inc1, fig.width=8, fig.height=4}
+dengue_data |> 
+  mutate(country = "Brazil") |> 
+  plot_timeseries(type = "inc", time = "date", area = "regional_geocode",
+                  var = "casos", pop = "pop", aggregate_space = "country",
+                  palette = "grey10", title = "Incidence - all Brazil")
+```
+
+```{r TS inc2, fig.width=8, fig.height=8}
+dengue_data |> 
+  plot_timeseries(type = "inc", time = "date", area = "regional_geocode",
+                  var = "casos", pop = "pop", aggregate_space = "uf",
+                  palette = "grey10", facet = TRUE,
+                  title = "Incidence - by state")
+```
+
+## Covariates lag 0
+
+```{r TS cov, fig.width=8, fig.height=8}
+# tas
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tas", pop = "pop", aggregate_space = "uf",
+                  palette = "red", title = "tas - by state")
+
+# tas anomaly
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tasan", pop = "pop", aggregate_space = "uf",
+                  palette = "tomato", title = "tas anomaly - by state")
+
+# prlr
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "prlr", pop = "pop", aggregate_space = "uf",
+                  palette = "royalblue", title = "prlr - by state")
+
+# spi
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "spi", pop = "pop", aggregate_space = "uf",
+                  palette = "brown", title = "spi - by state")
+```
+
+# Heat map
+
+# Seasonality
+
+# Maps
+
+# Correlation
+

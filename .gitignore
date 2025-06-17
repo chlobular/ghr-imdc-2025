@@ -4,3 +4,4 @@ outputs/
 *.err
 *.out
 nimble
+*.png
