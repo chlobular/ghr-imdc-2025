@@ -12,16 +12,27 @@ knitr::opts_chunk$set(echo = FALSE,
 
 library("dplyr")
 library("sf")
-library("GHRexplore", lib.loc = "/home/Earth/cmilagar/library/")
+library("GHRexplore")
 library("here")
 
 # Env: HUB with module R-bundle-CRAN/2024.06-foss-2023b
 ```
 
 ```{r Read data}
-dengue_data <- read.csv(here("data", "processed", "weekly_data.csv"))
+dengue_data <- read.csv(here("data", "processed", "weekly_data.csv")) |> 
+  mutate(region_id = as.factor(region_id))
+healthreg <- read_sf(here("data", "boundaries", "clean_hr.gpkg"))
 states <- read_sf(here("data", "boundaries", "brazil_states.gpkg"))
 ```
+
+These are the 5 supra regions we will use for visualizations:
+
+```{r health map}
+plot_map(dengue_data, var = "region_id", 
+         time = "date", area = "regional_geocode",
+         map = healthreg, map_area = "regional_geocode", by_year = FALSE)
+```
+
 
 # Time series
 
@@ -55,7 +66,7 @@ dengue_data |>
 # tas anomaly
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "tasan", pop = "pop", aggregate_space = "uf",
+                  var = "tasan1", pop = "pop", aggregate_space = "uf",
                   palette = "tomato", title = "tas anomaly - by state")
 
 # prlr
@@ -67,7 +78,7 @@ dengue_data |>
 # spi
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "spi", pop = "pop", aggregate_space = "uf",
+                  var = "spi1", pop = "pop", aggregate_space = "uf",
                   palette = "brown", title = "spi - by state")
 ```
 

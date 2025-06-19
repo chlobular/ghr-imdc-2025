@@ -23,6 +23,9 @@ library("sf")
 library("spdep")
 sf::sf_use_s2(FALSE)
 
+# local package
+# library("GHRmodel")
+
 # Extra functions
 source("R/00_functions.R")
 

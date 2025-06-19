@@ -5,3 +5,4 @@ outputs/
 *.out
 nimble
 *.png
+.Rhistory

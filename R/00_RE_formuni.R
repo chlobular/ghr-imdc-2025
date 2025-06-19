@@ -9,8 +9,8 @@
 #     Carles Milà  (carles.milagarcia@bsc.es)
 # ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-# 0. Null ----
-re_null <- ""
+# 0. Baseline
+all_baseline <- ""
 
 # 1. Spatial random effects ----
 
@@ -18,61 +18,45 @@ re_s01 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
                 "hyper = precision.prior)")
 re_s02 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
                 "hyper = precision.prior2)")
-
-re_s03 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
-                "scale.model = TRUE, hyper = precision.prior)")
-re_s04 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
-                "scale.model = TRUE, hyper = precision.prior2)")
+# re_s03 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
+#                 "scale.model = TRUE, hyper = precision.prior)")
+# re_s04 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
+#                 "scale.model = TRUE, hyper = precision.prior2)")
 
 # 2. Seasonal random effects ----
-
 re_w01 <- paste("f(week_id, model = 'rw1', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior)")
 re_w02 <- paste("f(week_id, model = 'rw2', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior)")
-re_w03 <- paste("f(week_id, model = 'ar1', cyclic = TRUE, constr = TRUE,",
-                "scale.model = TRUE, hyper = precision.prior)")
 
-re_w04 <- paste("f(week_id, model = 'rw1', replicate = state_id, cyclic = TRUE,",
+re_w03 <- paste("f(week_id, model = 'rw1', replicate = state_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w05 <- paste("f(week_id, model = 'rw2', replicate = state_id, cyclic = TRUE,",
-                "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w06 <- paste("f(week_id, model = 'ar', replicate = state_id, cyclic = TRUE,",
+re_w04 <- paste("f(week_id, model = 'rw2', replicate = state_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
 
-re_w07 <- paste("f(week_id, model = 'rw1', replicate = region_id, cyclic = TRUE,",
+re_w05 <- paste("f(week_id, model = 'rw1', replicate = region_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w08 <- paste("f(week_id, model = 'rw2', replicate = region_id, cyclic = TRUE,",
-                "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w09 <- paste("f(week_id, model = 'ar', replicate = region_id, cyclic = TRUE,",
+re_w06 <- paste("f(week_id, model = 'rw2', replicate = region_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
 
-re_w10 <- paste("f(week_id, model = 'rw1', replicate = biome_id, cyclic = TRUE,",
+re_w07 <- paste("f(week_id, model = 'rw1', replicate = biome_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w11 <- paste("f(week_id, model = 'rw2', replicate = biome_id, cyclic = TRUE,",
-                "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w12 <- paste("f(week_id, model = 'ar', replicate = biome_id, cyclic = TRUE,",
+re_w08 <- paste("f(week_id, model = 'rw2', replicate = biome_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
 
-re_w13 <- paste("f(week_id, model = 'rw1', replicate = koppen_id, cyclic = TRUE,",
+re_w09 <- paste("f(week_id, model = 'rw1', replicate = koppen_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w14 <- paste("f(week_id, model = 'rw2', replicate = koppen_id, cyclic = TRUE,",
-                "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w15 <- paste("f(week_id, model = 'ar', replicate = koppen_id, cyclic = TRUE,",
+re_w10 <- paste("f(week_id, model = 'rw2', replicate = koppen_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
 
-re_w16 <- paste("f(week_id, model = 'rw1', replicate = nino_id, cyclic = TRUE,",
+re_w11 <- paste("f(week_id, model = 'rw1', replicate = nino_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w17 <- paste("f(week_id, model = 'rw2', replicate = nino_id, cyclic = TRUE,",
-                "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
-re_w18 <- paste("f(week_id, model = 'ar', replicate = nino_id, cyclic = TRUE,",
+re_w12 <- paste("f(week_id, model = 'rw2', replicate = nino_id, cyclic = TRUE,",
                 "constr = TRUE, scale.model = TRUE, hyper = precision.prior)")
 
-re_w19 <- paste("f(week_id, model = 'rw1', cyclic = TRUE, constr = TRUE,",
+re_w13 <- paste("f(week_id, model = 'rw1', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior2)")
-re_w20 <- paste("f(week_id, model = 'rw2', cyclic = TRUE, constr = TRUE,",
-                "scale.model = TRUE, hyper = precision.prior2)")
-re_w21 <- paste("f(week_id, model = 'ar1', cyclic = TRUE, constr = TRUE,",
+re_w14 <- paste("f(week_id, model = 'rw2', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior2)")
 
 # 3. Yearly random effects ----
@@ -139,9 +123,30 @@ re_t17 <- "f(time_id, model = 'rw2', hyper = precision.prior2)"
 re_t18 <- "f(time_id, model = 'ar1', hyper = precision.prior2)"
 
 # 5. Create lists for each type ----
-all_n <- c("re_null" = re_null)
-all_w <- unlist(mget(c(paste0("re_w", sprintf("%02d", 1:21)))))
-all_y <- unlist(mget(c(paste0("re_y", sprintf("%02d", 1:18)))))
+names(all_baseline) <- "re_baseline"
+
+# spatial
+all_s <- unlist(mget(c(paste0("re_s", sprintf("%02d", 1:2)))))
+names_s <- names(all_s)
+all_s <- paste0(" + ", all_s)
+names(all_s) <- names_s
+
+# seasonal
+all_w <- unlist(mget(c(paste0("re_w", sprintf("%02d", 1:14)))))
+names_w <- names(all_w)
+all_w <- paste0(" + ", all_w)
+names(all_w) <- names_w
+
+# temporal
 all_t <- unlist(mget(c(paste0("re_t", sprintf("%02d", 1:18)))))
-all_s <- unlist(mget(c(paste0("re_s", sprintf("%02d", 1:4)))))
-rm(list = ls()[grepl("re", ls())])
+names_t <- names(all_t)
+all_t <- paste0(" + ", all_t)
+names(all_t) <- names_t
+
+# yearly
+all_y <- unlist(mget(c(paste0("re_y", sprintf("%02d", 1:18)))))
+names_y <- names(all_y)
+all_y <- paste0(" + ", all_y)
+names(all_y) <- names_y
+
+rm(list = ls()[grepl("re", ls()) | grepl("names", ls())])
