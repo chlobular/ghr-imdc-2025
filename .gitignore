@@ -1,5 +1,5 @@
 data/
-outputs/
+output/
 .Rproj.user
 *.err
 *.out

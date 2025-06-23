@@ -1,0 +1,93 @@
+---
+title: "Univariate RE models"
+author: "Carles Milà"
+date: "2025-06-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      fig.width = 9, fig.height = 3,
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel", lib.loc = "/home/Earth/cmilagar/packages/")
+library("purrr")
+library("forcats")
+library("here")
+```
+
+The list of the fitted models can be checked on [gitlab](https://earth.bsc.es/gitlab/ghr/infodengue-sprint/sprint2025/-/blob/main/R/00_RE_formuni.R). If a model does not appear here, it is because it didn't converge.
+
+# Spatial RE
+
+```{r spatial}
+re_list <- list.files(path = "output/uni_re", pattern = ".csv",
+                      recursive = TRUE, full.names = TRUE)
+re_list <- re_list[grepl("baseline", re_list)|grepl("_s", re_list)]
+
+re_gof <- map_df(re_list, function(x) {
+  y <- read.csv(x)
+  y$model_id <- substr(y$model_id, 1, nchar(y$model_id)-1)
+  y
+})
+
+plot_gof(re_gof, metric = "dic")
+plot_gof(re_gof, metric = "waic")
+plot_gof(re_gof, metric = "lms")
+```
+
+# Weekly RE
+
+```{r weekly}
+re_list <- list.files(path = "output/uni_re", pattern = ".csv",
+                      recursive = TRUE, full.names = TRUE)
+re_list <- re_list[grepl("baseline", re_list)|grepl("_w", re_list)]
+
+re_gof <- map_df(re_list, function(x) {
+  y <- read.csv(x)
+  y$model_id <- substr(y$model_id, 1, nchar(y$model_id)-1)
+  y
+})
+
+plot_gof(re_gof, metric = "dic")
+plot_gof(re_gof, metric = "waic")
+plot_gof(re_gof, metric = "lms")
+```
+
+# Yearly RE
+
+```{r yearly}
+re_list <- list.files(path = "output/uni_re", pattern = ".csv",
+                      recursive = TRUE, full.names = TRUE)
+re_list <- re_list[grepl("baseline", re_list)|grepl("_y", re_list)]
+
+re_gof <- map_df(re_list, function(x) {
+  y <- read.csv(x)
+  y$model_id <- substr(y$model_id, 1, nchar(y$model_id)-1)
+  y
+})
+
+plot_gof(re_gof, metric = "dic")
+plot_gof(re_gof, metric = "waic")
+plot_gof(re_gof, metric = "lms")
+```
+
+# Temporal RE
+
+```{r temporal}
+re_list <- list.files(path = "output/uni_re", pattern = ".csv",
+                      recursive = TRUE, full.names = TRUE)
+re_list <- re_list[grepl("baseline", re_list)|grepl("_t", re_list)]
+
+re_gof <- map_df(re_list, function(x) {
+  y <- read.csv(x)
+  y$model_id <- substr(y$model_id, 1, nchar(y$model_id)-1)
+  y
+})
+
+plot_gof(re_gof, metric = "dic")
+plot_gof(re_gof, metric = "waic")
+plot_gof(re_gof, metric = "lms")
+```
