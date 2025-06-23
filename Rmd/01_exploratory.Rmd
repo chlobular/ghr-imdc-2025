@@ -1,5 +1,5 @@
 ---
-title: "Exploratory analysis"
+title: "Sprint - Exploratory analysis"
 author: "Carles Milà"
 date: "2025-06-16"
 output: html_document
@@ -7,13 +7,17 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
-                      fig.align = "center")
+                      fig.align = "center",
+                      fig.width = 9)
 
 
 library("dplyr")
 library("sf")
 library("GHRexplore")
 library("here")
+library("ggplot2")
+library("lares")
+library("cowplot")
 
 # Env: HUB with module R-bundle-CRAN/2024.06-foss-2023b
 ```
@@ -25,68 +29,144 @@ healthreg <- read_sf(here("data", "boundaries", "clean_hr.gpkg"))
 states <- read_sf(here("data", "boundaries", "brazil_states.gpkg"))
 ```
 
-These are the 5 supra regions we will use for visualizations:
-
-```{r health map}
-plot_map(dengue_data, var = "region_id", 
-         time = "date", area = "regional_geocode",
-         map = healthreg, map_area = "regional_geocode", by_year = FALSE)
+```{r nino}
+nino_ts <- dengue_data[c("date", "nino_year")]
+nino_ts <- nino_ts[!duplicated(nino_ts),] 
+nino_ts <- nino_ts |> 
+  mutate(start = as.Date(date),
+         end = start + 7,
+         nino_year = factor(nino_year, levels = c("Nino", "Neutral", "Nina")))
 ```
 
+
+# Spatial units
+
+These are the 5 supra health regions we will use for visualizations, as well as maps for biome and koppen classifications.
+
+```{r maps, fig.height=4}
+p1 <- plot_map(dengue_data, var = "region_id", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode",
+               by_year = FALSE)
+p2 <- plot_map(dengue_data, var = "biome", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode",
+               by_year = FALSE)
+p3 <- plot_map(dengue_data, var = "koppen", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+plot_grid(p1, p2, p3, nrow = 1)
+```
 
 # Time series
 
-## Cases
-
-```{r TS inc1, fig.width=8, fig.height=4}
-dengue_data |> 
-  mutate(country = "Brazil") |> 
-  plot_timeseries(type = "inc", time = "date", area = "regional_geocode",
-                  var = "casos", pop = "pop", aggregate_space = "country",
-                  palette = "grey10", title = "Incidence - all Brazil")
-```
-
-```{r TS inc2, fig.width=8, fig.height=8}
+```{r TS, fig.height=3}
 dengue_data |> 
   plot_timeseries(type = "inc", time = "date", area = "regional_geocode",
-                  var = "casos", pop = "pop", aggregate_space = "uf",
-                  palette = "grey10", facet = TRUE,
-                  title = "Incidence - by state")
-```
+                  var = "casos", pop = "pop", aggregate_space = "region_id",
+                  title = "Incidence") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
 
-## Covariates lag 0
-
-```{r TS cov, fig.width=8, fig.height=8}
 # tas
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "tas", pop = "pop", aggregate_space = "uf",
-                  palette = "red", title = "tas - by state")
+                  var = "tas", pop = "pop", aggregate_space = "region_id",
+                  title = "tas (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
 
 # tas anomaly
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "tasan1", pop = "pop", aggregate_space = "uf",
-                  palette = "tomato", title = "tas anomaly - by state")
+                  var = "tasan1", pop = "pop", aggregate_space = "region_id",
+                  title = "tas anomaly (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
 
 # prlr
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "prlr", pop = "pop", aggregate_space = "uf",
-                  palette = "royalblue", title = "prlr - by state")
+                  var = "prlr", pop = "pop", aggregate_space = "region_id",
+                  title = "prlr (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
 
 # spi
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
-                  var = "spi1", pop = "pop", aggregate_space = "uf",
-                  palette = "brown", title = "spi - by state")
+                  var = "spi1", pop = "pop", aggregate_space = "region_id",
+                  title = "spei (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
 ```
 
-# Heat map
+# Incidence heat map
 
-# Seasonality
+```{r heatmap, fig.height=6}
+dengue_data |> 
+  plot_heatmap(type = "inc", time = "date", area = "regional_geocode",
+               var = "casos", pop = "pop", aggregate_space = "region_id")
+```
 
-# Maps
+# Incidence seasonality
+
+```{r seasonality, fig.height=5}
+dengue_data |> 
+  plot_seasonality(type = "inc", time = "date", area = "regional_geocode",
+                   var = "casos", pop = "pop", aggregate_space = "region_id")
+```
 
 # Correlation
 
+The number before the dot indicates the number of months for the rolling average, the number after the dot indicates the lag. I show only lag0 for parsimony in the following graphs.
+
+## tas, tasmin, tasmax, tasan
+
+```{r cor tas, fig.height = 9}
+datacor <- select(dengue_data, 
+                  tas, tas3, tas6, tas12,
+                  tasmin, tasmin3, tasmin6, tasmin12,
+                  tasmax, tasmax3, tasmax6, tasmax12,
+                  tasan1, tasan3, tasan6, tasan12)
+plot_correlation(datacor, var = names(datacor), scale = 0.9)
+```
+
+## prlr, spi and spei
+
+```{r cor spi}
+datacor <- select(dengue_data, 
+                  prlr, prlr3, prlr6, prlr12,
+                  spi1, spi3, spi6, spi12,
+                  spei1, spei3, spei6, spei12,)
+plot_correlation(datacor, var = names(datacor), scale = 0.9)
+```
+
+## nino
+
+```{r cor nino}
+datacor <- select(dengue_data, 
+                  nino, oni, nino6, nino12)
+plot_correlation(datacor, var = names(datacor))
+```
+
+# Top raw correlations
+
+```{r top}
+datacor <- dengue_data
+datacor$inc <- datacor$casos/datacor$pop
+datacor <- datacor[,30:ncol(datacor)] |> 
+  select(-ends_with("id"))
+corr_var(datacor, var = "inc", top = 20)
+```
