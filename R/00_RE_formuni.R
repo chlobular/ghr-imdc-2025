@@ -117,9 +117,9 @@ re_t13 <- "f(time_id, model = 'rw1', replicate = koppen_id, hyper = precision.pr
 re_t14 <- "f(time_id, model = 'rw2', replicate = koppen_id, hyper = precision.prior, constr = TRUE)"
 re_t15 <- "f(time_id, model = 'ar1', replicate = koppen_id, hyper = precision.prior, constr = TRUE)"
 
-re_t16 <- "f(time_id, model = 'rw1', hyper = precision.prior2, constr = TRUE, constr = TRUE)"
-re_t17 <- "f(time_id, model = 'rw2', hyper = precision.prior2, constr = TRUE, constr = TRUE)"
-re_t18 <- "f(time_id, model = 'ar1', hyper = precision.prior2, constr = TRUE, constr = TRUE)"
+re_t16 <- "f(time_id, model = 'rw1', hyper = precision.prior2, constr = TRUE)"
+re_t17 <- "f(time_id, model = 'rw2', hyper = precision.prior2, constr = TRUE)"
+re_t18 <- "f(time_id, model = 'ar1', hyper = precision.prior2, constr = TRUE)"
 
 # 5. Create lists for each type ----
 names(all_baseline) <- "re_baseline"
