@@ -2,7 +2,10 @@
 title: "Sprint - Exploratory analysis"
 author: "Carles Milà"
 date: "2025-06-16"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +22,7 @@ library("ggplot2")
 library("lares")
 library("cowplot")
 
-# Env: HUB with module R-bundle-CRAN/2024.06-foss-2023b
+# Env: Local
 ```
 
 ```{r Read data}
@@ -37,7 +40,6 @@ nino_ts <- nino_ts |>
          end = start + 7,
          nino_year = factor(nino_year, levels = c("Nino", "Neutral", "Nina")))
 ```
-
 
 # Spatial units
 
@@ -61,6 +63,8 @@ plot_grid(p1, p2, p3, nrow = 1)
 
 # Time series
 
+## Incidence
+
 ```{r TS, fig.height=3}
 dengue_data |> 
   plot_timeseries(type = "inc", time = "date", area = "regional_geocode",
@@ -70,12 +74,16 @@ dengue_data |>
             aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
                 fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
   labs(fill = "Niño year")
+```
 
+## Rolling mean 1
+
+```{r TS-1, fig.height=3}
 # tas
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
                   var = "tas", pop = "pop", aggregate_space = "region_id",
-                  title = "tas (lag 0)") +
+                  title = "tas - 1 (lag 0)") +
   geom_rect(data = nino_ts, 
             aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
                 fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
@@ -85,7 +93,7 @@ dengue_data |>
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
                   var = "tasan1", pop = "pop", aggregate_space = "region_id",
-                  title = "tas anomaly (lag 0)") +
+                  title = "tas anomaly - 1 (lag 0)") +
   geom_rect(data = nino_ts, 
             aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
                 fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
@@ -95,7 +103,7 @@ dengue_data |>
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
                   var = "prlr", pop = "pop", aggregate_space = "region_id",
-                  title = "prlr (lag 0)") +
+                  title = "prlr - 1 (lag 0)") +
   geom_rect(data = nino_ts, 
             aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
                 fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
@@ -105,7 +113,139 @@ dengue_data |>
 dengue_data |> 
   plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
                   var = "spi1", pop = "pop", aggregate_space = "region_id",
-                  title = "spei (lag 0)") +
+                  title = "SPI -1 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+```
+
+## Rolling mean 3
+
+```{r TS-3, fig.height=3}
+# tas
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tas3", pop = "pop", aggregate_space = "region_id",
+                  title = "tas - 3 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# tas anomaly
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tasan3", pop = "pop", aggregate_space = "region_id",
+                  title = "tas anomaly - 3 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# prlr
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "prlr3", pop = "pop", aggregate_space = "region_id",
+                  title = "prlr - 3 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# spi
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "spi3", pop = "pop", aggregate_space = "region_id",
+                  title = "SPI -3 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+```
+
+## Rolling mean 6
+
+```{r TS-6, fig.height=3}
+# tas
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tas6", pop = "pop", aggregate_space = "region_id",
+                  title = "tas - 6 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# tas anomaly
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tasan6", pop = "pop", aggregate_space = "region_id",
+                  title = "tas anomaly - 6 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# prlr
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "prlr6", pop = "pop", aggregate_space = "region_id",
+                  title = "prlr - 6 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# spi
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "spi6", pop = "pop", aggregate_space = "region_id",
+                  title = "SPI - 6 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+```
+
+## Rolling mean 12
+
+```{r TS-12, fig.height=3}
+# tas
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tas12", pop = "pop", aggregate_space = "region_id",
+                  title = "tas - 12 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# tas anomaly
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "tasan12", pop = "pop", aggregate_space = "region_id",
+                  title = "tas anomaly - 12 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# prlr
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "prlr12", pop = "pop", aggregate_space = "region_id",
+                  title = "prlr - 12 (lag 0)") +
+  geom_rect(data = nino_ts, 
+            aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
+                fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +
+  labs(fill = "Niño year")
+
+# spi
+dengue_data |> 
+  plot_timeseries(type = "cov", time = "date", area = "regional_geocode",
+                  var = "spi12", pop = "pop", aggregate_space = "region_id",
+                  title = "SPI -12 (lag 0)") +
   geom_rect(data = nino_ts, 
             aes(xmin = start, xmax = end, ymin = I(0), ymax = I(350), 
                 fill = nino_year), alpha = 0.1, inherit.aes = FALSE) +

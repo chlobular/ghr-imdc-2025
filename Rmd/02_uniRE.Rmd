@@ -2,20 +2,25 @@
 title: "Univariate RE models"
 author: "Carles Milà"
 date: "2025-06-23"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       fig.align = "center",
-                      fig.width = 9, fig.height = 3,
+                      fig.width = 7, fig.height = 3,
                       warning = FALSE,
                       message = FALSE)
 
-library("GHRmodel", lib.loc = "/home/Earth/cmilagar/packages/")
+library("GHRmodel")
 library("purrr")
 library("forcats")
 library("here")
+
+# Env: Local
 ```
 
 The list of the fitted models can be checked on [gitlab](https://earth.bsc.es/gitlab/ghr/infodengue-sprint/sprint2025/-/blob/main/R/00_RE_formuni.R). If a model does not appear here, it is because it didn't converge.

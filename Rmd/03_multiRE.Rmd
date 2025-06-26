@@ -1,0 +1,115 @@
+---
+title: "Multivariate RE models"
+author: "Carles Milà"
+date: "2025-06-26"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      fig.width = 7, fig.height = 3,
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("purrr")
+library("forcats")
+library("sf")
+library("here")
+
+# Env: Local
+```
+
+
+```{r read mods}
+# Model list
+mods_list <- read.csv("output/multi_re/models.csv") 
+mods_list$form <- NULL
+
+# Models
+mods_path <- list.files("output/multi_re", pattern = ".rds", 
+                        recursive = TRUE, full.names = TRUE)
+mods <- lapply(mods_path, function(x) readRDS(x))
+mods <- stack_models(mods, new_name = "mod")
+
+# Areas
+healthreg <- read_sf(here("data", "boundaries", "clean_hr.gpkg"))
+```
+
+# Table of models
+
+```{r tablemod}
+knitr::kable(mods_list)
+```
+
+# Goodness-of-fit
+
+```{r gof1}
+plot_gof(mods$mod_gof, metric = "dic")
+plot_gof(mods$mod_gof, metric = "waic")
+plot_gof(mods$mod_gof, metric = "lms")
+plot_gof(mods$mod_gof, metric = "mae")
+```
+
+# Fitted vs. observed
+
+```{r fitted, fig.width=9, fig.height=4}
+plot_fit(mods, time = "date", transform = "log10p1",
+         palette = "Set1")
+```
+
+# Spatial RE
+
+```{r spatial, fig.height=5}
+plot_re(mods, re_id = "hr_id", 
+        mod_id = c("mod011","mod031","mod051","mod071","mod091","mod011"),
+        map = healthreg, map_area = "regional_geocode",
+        title = "Standard BYM2")
+```
+
+```{r spatial nino}
+for(m in  c("mod021","mod041","mod061","mod081","mod101","mod121")){
+  print(plot_re(mods, re_id = "hr_id", rep_id = "nino_id",
+                mod_id = m,
+                map = healthreg, map_area = "regional_geocode",
+                title = paste0("BYM2 replicated by nino - ", m)))
+}
+```
+
+# Weekly RE
+
+```{r weekly state, fig.height=6}
+plot_re(mods, re_id = "week_id", rep_id = "state_id",
+        mod_id = c("mod011","mod021","mod071","mod081"),
+        title = "Weekly RW2 effects replicated by state")
+```
+
+```{r weekly region}
+plot_re(mods, re_id = "week_id", rep_id = "region_id",
+        mod_id = c("mod031","mod041","mod091","mod101"),
+        title = "Weekly RW2 effects replicated by region")
+```
+
+```{r weekly koppen, fig.height=4}
+plot_re(mods, re_id = "week_id", rep_id = "koppen_id",
+        mod_id = c("mod051","mod061","mod111","mod121"),
+        title = "Weekly RW2 effects replicated by koppen")
+```
+
+# Yearly RE
+
+```{r yearly state, fig.height=6}
+plot_re(mods, re_id = "year_id", rep_id = "state_id",
+        mod_id = c("mod011","mod021","mod031","mod041","mod051","mod061"),
+        title = "Yearly RW2 effects replicated by state")
+```
+
+```{r yearly koppen, fig.height=4}
+plot_re(mods, re_id = "year_id", rep_id = "koppen_id",
+        mod_id = c("mod071","mod081","mod091","mod101","mod111","mod121"),
+        title = "Yearly RW2 effects replicated by koppen")
+```
