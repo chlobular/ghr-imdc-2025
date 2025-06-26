@@ -57,9 +57,20 @@ plot_gof(mods$mod_gof, metric = "mae")
 
 # Fitted vs. observed
 
-```{r fitted, fig.width=9, fig.height=4}
+## All of Brazil
+
+```{r fitted all, fig.width=9, fig.height=4}
 plot_fit(mods, time = "date", transform = "log10p1",
          palette = "Set1")
+```
+
+## By state
+
+```{r fitted state, fig.width=10, fig.height=9}
+plot_fit(mods, time = "date", transform = "log10p1",
+         group = "state_id",
+         palette = "Set1") +
+  ggplot2::theme(legend.position = "bottom")
 ```
 
 # Spatial RE
