@@ -64,7 +64,7 @@ sprint_mod(all_baseline, data, "output/uni_re/", create_dir = T)
 
 # Spatial RE
 print("Spatial RE")
-for(i in 1:2){ # Replicated spatial RE are failing
+for(i in 1:4){ 
   print(all_s[i])
   sprint_mod(all_s[i], data, "output/uni_re/", create_dir = T)
 }

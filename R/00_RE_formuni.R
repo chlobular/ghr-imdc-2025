@@ -18,9 +18,9 @@ re_s01 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
                 "hyper = precision.prior, constr = TRUE)")
 re_s02 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
                 "hyper = precision.prior2, constr = TRUE)")
-re_s03 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
+re_s03 <- paste("f(hr_id, model = 'bym2', replicate = nino_id, graph = g,",
                 "scale.model = TRUE, hyper = precision.prior, constr = TRUE)")
-re_s04 <- paste("f(hr_id, model = 'bym2', replicate = 'nino_id', graph = g,",
+re_s04 <- paste("f(hr_id, model = 'bym2', replicate = nino_id, graph = g,",
                 "scale.model = TRUE, hyper = precision.prior2, constr = TRUE)")
 
 # 2. Seasonal random effects ----
