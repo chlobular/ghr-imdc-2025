@@ -24,7 +24,6 @@ library("here")
 # Env: Local
 ```
 
-
 ```{r read mods}
 # Model list
 mods_list <- read.csv("output/multi_re/models.csv") 
@@ -75,15 +74,16 @@ plot_fit(mods, time = "date", transform = "log10p1",
 
 # Spatial RE
 
-```{r spatial, fig.height=5}
+```{r spatial, fig.height=7}
 plot_re(mods, re_id = "hr_id", 
-        mod_id = c("mod011","mod031","mod051","mod071","mod091","mod011"),
+        mod_id = c("mod011","mod031","mod051","mod071","mod091","mod111",
+                   "mod141", "mod151"),
         map = healthreg, map_area = "regional_geocode",
         title = "Standard BYM2")
 ```
 
 ```{r spatial nino}
-for(m in  c("mod021","mod041","mod061","mod081","mod101","mod121")){
+for(m in  c("mod021","mod041","mod061","mod081","mod101","mod121","mod131")){
   print(plot_re(mods, re_id = "hr_id", rep_id = "nino_id",
                 mod_id = m,
                 map = healthreg, map_area = "regional_geocode",
@@ -95,13 +95,15 @@ for(m in  c("mod021","mod041","mod061","mod081","mod101","mod121")){
 
 ```{r weekly state, fig.height=6}
 plot_re(mods, re_id = "week_id", rep_id = "state_id",
-        mod_id = c("mod011","mod021","mod071","mod081"),
+        mod_id = c("mod011","mod021","mod071","mod081",
+                   "mod131","mod141","mod151"),
         title = "Weekly RW2 effects replicated by state")
 ```
 
 ```{r weekly region}
 plot_re(mods, re_id = "week_id", rep_id = "region_id",
-        mod_id = c("mod031","mod041","mod091","mod101"),
+        mod_id = c("mod031","mod041","mod091",
+                   "mod101"),
         title = "Weekly RW2 effects replicated by region")
 ```
 
@@ -123,4 +125,18 @@ plot_re(mods, re_id = "year_id", rep_id = "state_id",
 plot_re(mods, re_id = "year_id", rep_id = "koppen_id",
         mod_id = c("mod071","mod081","mod091","mod101","mod111","mod121"),
         title = "Yearly RW2 effects replicated by koppen")
+```
+
+```{r yearly iid}
+plot_re(mods, re_id = "year_id", 
+        mod_id = c("mod131","mod141"),
+        title = "Yearly iid effects")
+```
+
+# Nino RE
+
+```{r nino}
+plot_re(mods, re_id = "nino_id", 
+        mod_id = c("mod141","mod151"),
+        title = "Nino iid effects")
 ```

@@ -12,8 +12,7 @@
 # 0. Baseline
 all_baseline <- ""
 
-# 1. Spatial random effects ----
-
+# 1. Spatial RE ----
 re_s01 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
                 "hyper = precision.prior, constr = TRUE)")
 re_s02 <- paste("f(hr_id, model = 'bym2', graph = g, scale.model = TRUE,",
@@ -23,7 +22,7 @@ re_s03 <- paste("f(hr_id, model = 'bym2', replicate = nino_id, graph = g,",
 re_s04 <- paste("f(hr_id, model = 'bym2', replicate = nino_id, graph = g,",
                 "scale.model = TRUE, hyper = precision.prior2, constr = TRUE)")
 
-# 2. Seasonal random effects ----
+# 2. Weekly RE ----
 re_w01 <- paste("f(week_id, model = 'rw1', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior)")
 re_w02 <- paste("f(week_id, model = 'rw2', cyclic = TRUE, constr = TRUE,",
@@ -59,7 +58,7 @@ re_w13 <- paste("f(week_id, model = 'rw1', cyclic = TRUE, constr = TRUE,",
 re_w14 <- paste("f(week_id, model = 'rw2', cyclic = TRUE, constr = TRUE,",
                 "scale.model = TRUE, hyper = precision.prior2)")
 
-# 3. Yearly random effects ----
+# 3. Yearly RE ----
 re_y01 <- "f(year_id, model = 'iid', hyper = precision.prior, constr = TRUE)"
 re_y02 <- "f(year_id, model = 'rw1', hyper = precision.prior, constr = TRUE)"
 re_y03 <- "f(year_id, model = 'rw2', hyper = precision.prior, constr = TRUE)"
@@ -96,7 +95,7 @@ re_y16 <- "f(year_fct, model = 'iid', hyper = precision.prior2, constr = TRUE)"
 re_y17 <- "f(year_id, model = 'rw1', hyper = precision.prior2, constr = TRUE)"
 re_y18 <- "f(year_id, model = 'rw2', hyper = precision.prior2, constr = TRUE)"
 
-# 4. Temporal random effects ----
+# 4. Temporal RE ----
 re_t01 <- "f(time_id, model = 'rw1', hyper = precision.prior, constr = TRUE)"
 re_t02 <- "f(time_id, model = 'rw2', hyper = precision.prior, constr = TRUE)"
 re_t03 <- "f(time_id, model = 'ar1', hyper = precision.prior, constr = TRUE)"
@@ -121,7 +120,12 @@ re_t16 <- "f(time_id, model = 'rw1', hyper = precision.prior2, constr = TRUE)"
 re_t17 <- "f(time_id, model = 'rw2', hyper = precision.prior2, constr = TRUE)"
 re_t18 <- "f(time_id, model = 'ar1', hyper = precision.prior2, constr = TRUE)"
 
-# 5. Create lists for each type ----
+
+# 5. Nino RE ----
+re_n01 <- "f(nino_id, model = 'iid', hyper = precision.prior, constr = TRUE)"
+
+
+# 6. Create lists for each type ----
 names(all_baseline) <- "re_baseline"
 
 # spatial
@@ -147,5 +151,11 @@ all_t <- unlist(mget(c(paste0("re_t", sprintf("%02d", 1:18)))))
 names_t <- names(all_t)
 all_t <- paste0(" + ", all_t)
 names(all_t) <- names_t
+
+# nino
+all_n <- unlist(mget(c(paste0("re_n", sprintf("%02d", 1:1)))))
+names_n <- names(all_n)
+all_n <- paste0(" + ", all_n)
+names(all_n) <- names_n
 
 rm(list = ls()[grepl("re", ls()) | grepl("names", ls())])
