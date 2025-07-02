@@ -68,6 +68,8 @@ tas_form_nl <- cov_nl(tas_form_lin, pattern = "", method = "cut")
 tas_form_rep1 <- cov_varying(tas_form_lin, pattern = "", unit = "region_id")
 tas_form_rep2 <- cov_varying(tas_form_lin, pattern = "", unit = "koppen_id")
 tas_form_rep3 <- cov_varying(tas_form_lin, pattern = "", unit = "biome_id")
+write.csv(data.frame(var = tas_vars), row.names = FALSE,
+          "output/uni_fe/tas_vars.csv")
 
 # tasan
 tasan_vars <- extract_names(data, pattern = "tasan")
@@ -76,6 +78,8 @@ tasan_form_nl <- cov_nl(tasan_form_lin, pattern = "", method = "cut")
 tasan_form_rep1 <- cov_varying(tasan_form_lin, pattern = "", unit = "region_id")
 tasan_form_rep2 <- cov_varying(tasan_form_lin, pattern = "", unit = "koppen_id")
 tasan_form_rep3 <- cov_varying(tasan_form_lin, pattern = "", unit = "biome_id")
+write.csv(data.frame(var = tasan_vars), row.names = FALSE,
+          "output/uni_fe/tasan_vars.csv")
 
 # prlr
 prlr_vars <- extract_names(data, pattern = "prlr")
@@ -84,6 +88,8 @@ prlr_form_nl <- cov_nl(prlr_form_lin, pattern = "", method = "cut")
 prlr_form_rep1 <- cov_varying(prlr_form_lin, pattern = "", unit = "region_id")
 prlr_form_rep2 <- cov_varying(prlr_form_lin, pattern = "", unit = "koppen_id")
 prlr_form_rep3 <- cov_varying(prlr_form_lin, pattern = "", unit = "biome_id")
+write.csv(data.frame(var = prlr_vars), row.names = FALSE,
+          "output/uni_fe/prlr_vars.csv")
 
 # spi and spei
 sp_vars <- extract_names(data, pattern = "sp")
@@ -92,16 +98,20 @@ sp_form_nl <- cov_nl(sp_form_lin, pattern = "", method = "cut")
 sp_form_rep1 <- cov_varying(sp_form_lin, pattern = "", unit = "region_id")
 sp_form_rep2 <- cov_varying(sp_form_lin, pattern = "", unit = "koppen_id")
 sp_form_rep3 <- cov_varying(sp_form_lin, pattern = "", unit = "biome_id")
+write.csv(data.frame(var = sp_vars), row.names = FALSE,
+          "output/uni_fe/sp_vars.csv")
 
 # nino
 nino_vars <- c(extract_names(data, pattern = "nino"),
                extract_names(data, pattern = "oni"))
-nino_form_lin <- cov_uni(nino_vars, pattern = "nino")
+nino_vars <- setdiff(nino_vars, "nino_id")
+nino_form_lin <- cov_uni(nino_vars, pattern = "")
 nino_form_nl <- cov_nl(nino_form_lin, pattern = "", method = "cut")
 nino_form_rep1 <- cov_varying(nino_form_lin, pattern = "", unit = "region_id")
 nino_form_rep2 <- cov_varying(nino_form_lin, pattern = "", unit = "koppen_id")
 nino_form_rep3 <- cov_varying(nino_form_lin, pattern = "", unit = "biome_id")
-
+write.csv(data.frame(var = nino_vars), row.names = FALSE,
+          "output/uni_fe/nino_vars.csv")
 
 # 4. Formulas ----
 

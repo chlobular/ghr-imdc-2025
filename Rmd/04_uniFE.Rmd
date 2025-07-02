@@ -1,0 +1,760 @@
+---
+title: "Univariate FE models"
+author: "Carles Milà"
+date: "2025-07-01"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("dplyr")
+library("forcats")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+# Env: Local
+```
+
+```{r baseline}
+baseline <- read.csv("output/uni_fe/baseline_gof.csv")
+baseline$model_id <- "intercept"
+baseline$Type <- "Baseline"
+```
+
+# tas
+
+## GOF
+
+```{r tas gof, fig.width=9, fig.height=4}
+# Read gof
+tas_vars <- read.csv("output/uni_fe/tas_vars.csv")
+tas_lin <- read.csv("output/uni_fe/tas_lin_gof.csv") |> 
+  mutate(model_id = tas_vars$var, Type = "Linear") |> 
+  select(-covariate_1)
+tas_nl <- read.csv("output/uni_fe/tas_nl_gof.csv") |> 
+  mutate(model_id = tas_vars$var, Type = "Non-linear") |> 
+  select(-covariate_1)
+tas_rep1 <- read.csv("output/uni_fe/tas_rep1_gof.csv") |> 
+  mutate(model_id = tas_vars$var, Type = "Rep. region") |> 
+  select(-covariate_1)
+tas_rep2 <- read.csv("output/uni_fe/tas_rep2_gof.csv") |> 
+  mutate(model_id = tas_vars$var, Type = "Rep. koppen") |> 
+  select(-covariate_1)
+tas_rep3 <- read.csv("output/uni_fe/tas_rep3_gof.csv") |> 
+  mutate(model_id = tas_vars$var, Type = "Rep. biome") |> 
+  select(-covariate_1)
+
+# Delete outlier
+tas_nl <- tas_nl[tas_nl$model_id != "tas6.l6",]
+
+# Combine
+tas_gof <- rbind(baseline, tas_lin, tas_nl, 
+                 tas_rep1, tas_rep2, tas_rep3)
+
+# DIC
+ggplot(tas_gof, aes(x = model_id, y = dic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tas_gof[tas_gof$model_id=="intercept",],
+             aes(yintercept = dic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("DIC")
+
+# WAIC
+ggplot(tas_gof, aes(x = model_id, y = waic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tas_gof[tas_gof$model_id=="intercept",],
+             aes(yintercept = waic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("WAIC")
+
+
+# LMS
+ggplot(tas_gof, aes(x = model_id, y = lms, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tas_gof[tas_gof$model_id=="intercept",],
+             aes(yintercept = lms), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("LMS")
+
+rm("tas_gof")
+```
+
+## Linear
+
+```{r tas linear, fig.height=9}
+mod_tas <- readRDS("output/uni_fe/tas_lin_mod.rds")
+plot_coef_lin(mod_tas, mod_id = names(mod_tas$fixed)) +
+  theme(legend.position = "none")
+rm("mod_tas")
+```
+
+## Non-linear
+
+Top 6 predictors only.
+
+```{r tas nl}
+mod_tas <- readRDS("output/uni_fe/tas_nl_mod.rds")
+pvars <- c("tas12", "tas12.l1", "tasmax12", 
+           "tasmax12.l1", "tasmax12.l2", "tasmax6")
+p1 <-
+  plot_coef_nl(mod_tas,
+               mod_id = paste0("mod", which(tas_vars$var %in% pvars)[1:3]),
+               pattern = "", xlab = "", ylab = "")
+p2 <-
+  plot_coef_nl(mod_tas,
+               mod_id = paste0("mod", which(tas_vars$var %in% pvars)[4:6]),
+               pattern = "", xlab = "", ylab = "")
+plot_grid(p1, p2, ncol = 2)
+rm("mod_tas")
+```
+
+## Rep - Region
+
+Top 6 predictors only.
+
+```{r tas rep1}
+mod_tas <- readRDS("output/uni_fe/tas_rep1_mod.rds")
+pvars <- c("tas12", "tas12.l1", "tasmax12", 
+           "tasmax12.l1", "tasmax12.l2", "tasmax6")
+pvars <- which(tas_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tas, mod_id = paste0("mod", pvars[i]),
+                                  name = "region_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tas")
+```
+
+## Rep - Koppen
+
+Top 6 predictors only.
+
+```{r tas rep2}
+mod_tas <- readRDS("output/uni_fe/tas_rep2_mod.rds")
+pvars <- c("tas12", "tas12.l1", "tasmax12", 
+           "tasmax12.l1", "tasmax12.l2", "tasmax6")
+pvars <- which(tas_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tas, mod_id = paste0("mod", pvars[i]),
+                                  name = "koppen_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tas")
+```
+
+## Rep - Biome
+
+Top 6 predictors only.
+
+```{r tas rep3}
+mod_tas <- readRDS("output/uni_fe/tas_rep3_mod.rds")
+pvars <- c("tas12", "tas12.l1", "tasmax12", 
+           "tasmax12.l1", "tasmax12.l2", "tasmax6")
+pvars <- which(tas_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tas, mod_id = paste0("mod", pvars[i]),
+                                  name = "biome_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tas")
+```
+
+# tasan
+
+## GOF
+
+```{r tasan gof, fig.width=9, fig.height=4}
+# Read gof
+tasan_vars <- read.csv("output/uni_fe/tasan_vars.csv")
+tasan_lin <- read.csv("output/uni_fe/tasan_lin_gof.csv") |> 
+  mutate(model_id = tasan_vars$var, Type = "Linear") |> 
+  select(-covariate_1)
+tasan_nl <- read.csv("output/uni_fe/tasan_nl_gof.csv") |> 
+  mutate(model_id = tasan_vars$var, Type = "Non-linear") |> 
+  select(-covariate_1)
+tasan_rep1 <- read.csv("output/uni_fe/tasan_rep1_gof.csv") |> 
+  mutate(model_id = tasan_vars$var, Type = "Rep. region") |> 
+  select(-covariate_1)
+tasan_rep2 <- read.csv("output/uni_fe/tasan_rep2_gof.csv") |> 
+  mutate(model_id = tasan_vars$var, Type = "Rep. koppen") |> 
+  select(-covariate_1)
+tasan_rep3 <- read.csv("output/uni_fe/tasan_rep3_gof.csv") |> 
+  mutate(model_id = tasan_vars$var, Type = "Rep. biome") |> 
+  select(-covariate_1)
+
+# Delete outlier
+tasan_nl <- tasan_nl[tasan_nl$model_id != "tasan6.l6",]
+
+# Combine
+tasan_gof <- rbind(baseline, tasan_lin, tasan_nl, 
+                   tasan_rep1, tasan_rep2, tasan_rep3)
+
+# DIC
+ggplot(tasan_gof, aes(x = model_id, y = dic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tasan_gof[tasan_gof$model_id=="intercept",],
+             aes(yintercept = dic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("DIC")
+
+# WAIC
+ggplot(tasan_gof, aes(x = model_id, y = waic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tasan_gof[tasan_gof$model_id=="intercept",],
+             aes(yintercept = waic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("WAIC")
+
+
+# LMS
+ggplot(tasan_gof, aes(x = model_id, y = lms, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tasan_gof[tasan_gof$model_id=="intercept",],
+             aes(yintercept = lms), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("LMS")
+
+rm("tasan_gof")
+```
+
+## Linear
+
+```{r tasan linear}
+mod_tasan <- readRDS("output/uni_fe/tasan_lin_mod.rds")
+plot_coef_lin(mod_tasan, mod_id = names(mod_tasan$fixed)) +
+  theme(legend.position = "none")
+rm("mod_tasan")
+```
+
+## Non-linear
+
+Top 6 predictors only.
+
+```{r tasan nl}
+mod_tasan <- readRDS("output/uni_fe/tasan_nl_mod.rds")
+pvars <- c("tasan12", "tasan12.l1", "tasan12.l2", 
+           "tasan6", "tasan6.l1", "tasan6.l2")
+p1 <-
+  plot_coef_nl(mod_tasan, 
+               mod_id = paste0("mod", which(tasan_vars$var %in% pvars)[1:3]),
+               pattern = "", xlab = "", ylab = "") 
+p2 <-
+  plot_coef_nl(mod_tasan, 
+               mod_id = paste0("mod", which(tasan_vars$var %in% pvars)[4:6]),
+               pattern = "", xlab = "", ylab = "") 
+plot_grid(p1, p2, ncol = 2)
+rm("mod_tasan")
+```
+
+## Rep - Region
+
+Top 6 predictors only.
+
+```{r tasan rep1}
+mod_tasan <- readRDS("output/uni_fe/tasan_rep1_mod.rds")
+pvars <- c("tasan12", "tasan12.l1", "tasan12.l2", 
+           "tasan6", "tasan6.l1", "tasan6.l2")
+pvars <- which(tasan_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tasan, mod_id = paste0("mod", pvars[i]),
+                                  name = "region_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tasan")
+```
+
+## Rep - Koppen
+
+Top 6 predictors only.
+
+```{r tasan rep2}
+mod_tasan <- readRDS("output/uni_fe/tasan_rep2_mod.rds")
+pvars <- c("tasan12", "tasan12.l1", "tasan12.l2", 
+           "tasan6", "tasan6.l1", "tasan6.l2")
+pvars <- which(tasan_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tasan, mod_id = paste0("mod", pvars[i]),
+                                  name = "koppen_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tasan")
+```
+
+## Rep - Biome
+
+Top 6 predictors only.
+
+```{r tasan rep3}
+mod_tasan <- readRDS("output/uni_fe/tasan_rep3_mod.rds")
+pvars <- c("tasan12", "tasan12.l1", "tasan12.l2", 
+           "tasan6", "tasan6.l1", "tasan6.l2")
+pvars <- which(tasan_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_tasan, mod_id = paste0("mod", pvars[i]),
+                                  name = "biome_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_tasan")
+```
+
+# prlr
+
+## GOF
+
+```{r prlr gof, fig.width=9, fig.height=4}
+# Read gof
+prlr_vars <- read.csv("output/uni_fe/prlr_vars.csv")
+prlr_lin <- read.csv("output/uni_fe/prlr_lin_gof.csv") |> 
+  mutate(model_id = prlr_vars$var, Type = "Linear") |> 
+  select(-covariate_1)
+prlr_nl <- read.csv("output/uni_fe/prlr_nl_gof.csv") |> 
+  mutate(model_id = prlr_vars$var, Type = "Non-linear") |> 
+  select(-covariate_1)
+prlr_rep1 <- read.csv("output/uni_fe/prlr_rep1_gof.csv") |> 
+  mutate(model_id = prlr_vars$var, Type = "Rep. region") |> 
+  select(-covariate_1)
+prlr_rep2 <- read.csv("output/uni_fe/prlr_rep2_gof.csv") |> 
+  mutate(model_id = prlr_vars$var, Type = "Rep. koppen") |> 
+  select(-covariate_1)
+prlr_rep3 <- read.csv("output/uni_fe/prlr_rep3_gof.csv") |> 
+  mutate(model_id = prlr_vars$var, Type = "Rep. biome") |> 
+  select(-covariate_1)
+
+# Combine
+prlr_gof <- rbind(baseline, prlr_lin, prlr_nl, 
+                  prlr_rep1, prlr_rep2, prlr_rep3)
+
+# DIC
+ggplot(prlr_gof, aes(x = model_id, y = dic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = prlr_gof[prlr_gof$model_id=="intercept",],
+             aes(yintercept = dic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("DIC")
+
+# WAIC
+ggplot(prlr_gof, aes(x = model_id, y = waic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = prlr_gof[prlr_gof$model_id=="intercept",],
+             aes(yintercept = waic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("WAIC")
+
+
+# LMS
+ggplot(prlr_gof, aes(x = model_id, y = lms, col = Type)) +
+  geom_point() + 
+  geom_hline(data = prlr_gof[prlr_gof$model_id=="intercept",],
+             aes(yintercept = lms), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("LMS")
+
+rm("prlr_gof")
+```
+
+## Linear
+
+```{r prlr linear}
+mod_prlr <- readRDS("output/uni_fe/prlr_lin_mod.rds")
+plot_coef_lin(mod_prlr, mod_id = names(mod_prlr$fixed)) +
+  theme(legend.position = "none")
+rm("mod_prlr")
+```
+
+## Non-linear
+
+Top 6 predictors only.
+
+```{r prlr nl}
+mod_prlr <- readRDS("output/uni_fe/prlr_nl_mod.rds")
+pvars <- c("prlr12.l1", "prlr12.l2", "prlr12.l3", 
+           "prlr12.l4", "prlr12.l5", "prlr12.l6")
+p1 <-
+  plot_coef_nl(mod_prlr, 
+               mod_id = paste0("mod", which(prlr_vars$var %in% pvars)[1:3]),
+               pattern = "", xlab = "", ylab = "") 
+p2 <-
+  plot_coef_nl(mod_prlr, 
+               mod_id = paste0("mod", which(prlr_vars$var %in% pvars)[4:6]),
+               pattern = "", xlab = "", ylab = "") 
+plot_grid(p1, p2, ncol = 2)
+rm("mod_prlr")
+```
+
+## Rep - Region
+
+Top 6 predictors only.
+
+```{r prlr rep1}
+mod_prlr <- readRDS("output/uni_fe/prlr_rep1_mod.rds")
+pvars <- c("prlr12.l1", "prlr12.l2", "prlr12.l3", 
+           "prlr12.l4", "prlr12.l5", "prlr12.l6")
+pvars <- which(prlr_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_prlr, mod_id = paste0("mod", pvars[i]),
+                                  name = "region_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_prlr")
+```
+
+## Rep - Koppen
+
+Top 6 predictors only.
+
+```{r prlr rep2}
+mod_prlr <- readRDS("output/uni_fe/prlr_rep2_mod.rds")
+pvars <- c("prlr12.l1", "prlr12.l2", "prlr12.l3", 
+           "prlr12.l4", "prlr12.l5", "prlr12.l6")
+pvars <- which(prlr_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_prlr, mod_id = paste0("mod", pvars[i]),
+                                  name = "koppen_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_prlr")
+```
+
+## Rep - Biome
+
+Top 6 predictors only.
+
+```{r prlr rep3}
+mod_prlr <- readRDS("output/uni_fe/prlr_rep3_mod.rds")
+pvars <- c("prlr12.l1", "prlr12.l2", "prlr12.l3", 
+           "prlr12.l4", "prlr12.l5", "prlr12.l6")
+pvars <- which(prlr_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_prlr, mod_id = paste0("mod", pvars[i]),
+                                  name = "biome_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_prlr")
+```
+
+
+# spi and spei
+
+## GOF
+
+```{r sp gof, fig.width=9, fig.height=4}
+# Read gof
+sp_vars <- read.csv("output/uni_fe/sp_vars.csv")
+sp_lin <- read.csv("output/uni_fe/sp_lin_gof.csv") |> 
+  mutate(model_id = sp_vars$var, Type = "Linear") |> 
+  select(-covariate_1)
+sp_nl <- read.csv("output/uni_fe/sp_nl_gof.csv") |> 
+  mutate(model_id = sp_vars$var, Type = "Non-linear") |> 
+  select(-covariate_1)
+sp_rep1 <- read.csv("output/uni_fe/sp_rep1_gof.csv") |> 
+  mutate(model_id = sp_vars$var, Type = "Rep. region") |> 
+  select(-covariate_1)
+sp_rep2 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  mutate(model_id = sp_vars$var, Type = "Rep. koppen") |> 
+  select(-covariate_1)
+sp_rep3 <- read.csv("output/uni_fe/sp_rep3_gof.csv") |> 
+  mutate(model_id = sp_vars$var, Type = "Rep. biome") |> 
+  select(-covariate_1)
+
+# Combine
+sp_gof <- rbind(baseline, sp_lin, sp_nl, 
+                sp_rep1, sp_rep2, sp_rep3)
+
+# DIC
+ggplot(sp_gof, aes(x = model_id, y = dic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = sp_gof[sp_gof$model_id=="intercept",],
+             aes(yintercept = dic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("DIC")
+
+# WAIC
+ggplot(sp_gof, aes(x = model_id, y = waic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = sp_gof[sp_gof$model_id=="intercept",],
+             aes(yintercept = waic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("WAIC")
+
+
+# LMS
+ggplot(sp_gof, aes(x = model_id, y = lms, col = Type)) +
+  geom_point() + 
+  geom_hline(data = sp_gof[sp_gof$model_id=="intercept",],
+             aes(yintercept = lms), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("LMS")
+
+rm("sp_gof")
+```
+
+## Linear
+
+```{r sp linear, fig.height=5, fig.height=7}
+mod_sp <- readRDS("output/uni_fe/sp_lin_mod.rds")
+plot_coef_lin(mod_sp, mod_id = names(mod_sp$fixed)) +
+  theme(legend.position = "none")
+rm("mod_sp")
+```
+
+## Non-linear
+
+Top 6 predictors only.
+
+```{r sp nl}
+mod_sp <- readRDS("output/uni_fe/sp_nl_mod.rds")
+pvars <- c("spei12.l1", "spei12.l2", "spei12.l3", 
+           "spi12.l1", "spi12.l2", "spi12.l3")
+p1 <-
+  plot_coef_nl(mod_sp, 
+               mod_id = paste0("mod", which(sp_vars$var %in% pvars)[1:3]),
+               pattern = "", xlab = "", ylab = "") 
+p2 <-
+  plot_coef_nl(mod_sp, 
+               mod_id = paste0("mod", which(sp_vars$var %in% pvars)[4:6]),
+               pattern = "", xlab = "", ylab = "") 
+plot_grid(p1, p2, ncol = 2)
+rm("mod_sp")
+```
+
+## Rep - Region
+
+Top 6 predictors only.
+
+```{r sp rep1}
+mod_sp <- readRDS("output/uni_fe/sp_rep1_mod.rds")
+pvars <- c("spei12.l1", "spei12.l2", "spei12.l3", 
+           "spi12.l1", "spi12.l2", "spi12.l3")
+pvars <- which(sp_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_sp, mod_id = paste0("mod", pvars[i]),
+                                  name = "region_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_sp")
+```
+
+## Rep - Koppen
+
+Top 6 predictors only.
+
+```{r sp rep2}
+mod_sp <- readRDS("output/uni_fe/sp_rep2_mod.rds")
+pvars <- c("spei12.l1", "spei12.l2", "spei12.l3", 
+           "spi12.l1", "spi12.l2", "spi12.l3")
+pvars <- which(sp_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_sp, mod_id = paste0("mod", pvars[i]),
+                                  name = "koppen_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_sp")
+```
+
+## Rep - Biome
+
+Top 6 predictors only.
+
+```{r sp rep3}
+mod_sp <- readRDS("output/uni_fe/sp_rep3_mod.rds")
+pvars <- c("spei12.l1", "spei12.l2", "spei12.l3", 
+           "spi12.l1", "spi12.l2", "spi12.l3")
+pvars <- which(sp_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_sp, mod_id = paste0("mod", pvars[i]),
+                                  name = "biome_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_sp")
+```
+
+
+
+# nino
+
+## GOF
+
+```{r nino gof, fig.width=9, fig.height=4}
+# Read gof
+nino_vars <- read.csv("output/uni_fe/nino_vars.csv")
+nino_lin <- read.csv("output/uni_fe/nino_lin_gof.csv") |> 
+  mutate(model_id = nino_vars$var, Type = "Linear") |> 
+  select(-covariate_1)
+nino_nl <- read.csv("output/uni_fe/nino_nl_gof.csv") |> 
+  mutate(model_id = nino_vars$var, Type = "Non-linear") |> 
+  select(-covariate_1)
+nino_rep1 <- read.csv("output/uni_fe/nino_rep1_gof.csv") |> 
+  mutate(model_id = nino_vars$var, Type = "Rep. region") |> 
+  select(-covariate_1)
+nino_rep2 <- read.csv("output/uni_fe/nino_rep2_gof.csv") |> 
+  mutate(model_id = nino_vars$var, Type = "Rep. koppen") |> 
+  select(-covariate_1)
+nino_rep3 <- read.csv("output/uni_fe/nino_rep3_gof.csv") |> 
+  mutate(model_id = nino_vars$var, Type = "Rep. biome") |> 
+  select(-covariate_1)
+
+# Combine
+nino_gof <- rbind(baseline, nino_lin, nino_nl, 
+                  nino_rep1, nino_rep2, nino_rep3)
+
+# DIC
+ggplot(nino_gof, aes(x = model_id, y = dic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = nino_gof[nino_gof$model_id=="intercept",],
+             aes(yintercept = dic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("DIC")
+
+# WAIC
+ggplot(nino_gof, aes(x = model_id, y = waic, col = Type)) +
+  geom_point() + 
+  geom_hline(data = nino_gof[nino_gof$model_id=="intercept",],
+             aes(yintercept = waic), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("WAIC")
+
+
+# LMS
+ggplot(nino_gof, aes(x = model_id, y = lms, col = Type)) +
+  geom_point() + 
+  geom_hline(data = nino_gof[nino_gof$model_id=="intercept",],
+             aes(yintercept = lms), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("LMS")
+
+rm("nino_gof")
+```
+
+## Linear
+
+```{r nino linear}
+mod_nino <- readRDS("output/uni_fe/nino_lin_mod.rds")
+plot_coef_lin(mod_nino, mod_id = names(mod_nino$fixed)) +
+  theme(legend.position = "none")
+rm("mod_nino")
+```
+
+## Non-linear
+
+Top 6 predictors only.
+
+```{r nino nl}
+mod_nino <- readRDS("output/uni_fe/nino_nl_mod.rds")
+pvars <- c("nino12.l3", "nino6.l4", "nino6.l5", 
+           "nino6.l6", "oni.l1", "oni.l6")
+p1 <-
+  plot_coef_nl(mod_nino, 
+               mod_id = paste0("mod", which(nino_vars$var %in% pvars)[1:3]),
+               pattern = "", xlab = "", ylab = "") 
+p2 <-
+  plot_coef_nl(mod_nino, 
+               mod_id = paste0("mod", which(nino_vars$var %in% pvars)[4:6]),
+               pattern = "", xlab = "", ylab = "") 
+plot_grid(p1, p2, ncol = 2)
+rm("mod_nino")
+```
+
+## Rep - Region
+
+Top 6 predictors only.
+
+```{r nino rep1}
+mod_nino <- readRDS("output/uni_fe/nino_rep1_mod.rds")
+pvars <- c("nino12", "nino6", "nino6.l1", 
+           "nino6.l2", "oni.l2", "oni.l3")
+pvars <- which(nino_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_nino, mod_id = paste0("mod", pvars[i]),
+                                  name = "region_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_nino")
+```
+
+## Rep - Koppen
+
+Top 6 predictors only.
+
+```{r nino rep2}
+mod_nino <- readRDS("output/uni_fe/nino_rep2_mod.rds")
+pvars <- c("nino12", "nino6", "nino6.l1", 
+           "nino6.l2", "oni.l2", "oni.l3")
+pvars <- which(nino_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_nino, mod_id = paste0("mod", pvars[i]),
+                                  name = "koppen_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_nino")
+```
+
+## Rep - Biome
+
+Top 6 predictors only.
+
+```{r nino rep3}
+mod_nino <- readRDS("output/uni_fe/nino_rep3_mod.rds")
+pvars <- c("nino12", "nino6", "nino6.l1", 
+           "nino6.l2", "oni.l2", "oni.l3")
+pvars <- which(nino_vars$var %in% pvars)
+plist <- list()
+for(i in 1:6){
+  plist[[i]] <- plot_coef_varying(mod_nino, mod_id = paste0("mod", pvars[i]),
+                                  name = "biome_id") 
+}
+plot_grid(plotlist = plist, ncol = 2)
+rm("mod_nino")
+```
