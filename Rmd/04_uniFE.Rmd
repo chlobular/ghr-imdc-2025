@@ -91,6 +91,16 @@ ggplot(tas_gof, aes(x = model_id, y = lms, col = Type)) +
         legend.position = "bottom") +
   xlab("Predictor") + ylab("LMS")
 
+# MAE
+ggplot(tas_gof, aes(x = model_id, y = mae, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tas_gof[tas_gof$model_id=="intercept",],
+             aes(yintercept = mae), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("MAE")
+
 rm("tas_gof")
 ```
 
@@ -238,6 +248,16 @@ ggplot(tasan_gof, aes(x = model_id, y = lms, col = Type)) +
         legend.position = "bottom") +
   xlab("Predictor") + ylab("LMS")
 
+# MAE
+ggplot(tasan_gof, aes(x = model_id, y = mae, col = Type)) +
+  geom_point() + 
+  geom_hline(data = tasan_gof[tasan_gof$model_id=="intercept",],
+             aes(yintercept = mae), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("MAE")
+
 rm("tasan_gof")
 ```
 
@@ -381,6 +401,16 @@ ggplot(prlr_gof, aes(x = model_id, y = lms, col = Type)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
         legend.position = "bottom") +
   xlab("Predictor") + ylab("LMS")
+
+# MAE
+ggplot(prlr_gof, aes(x = model_id, y = mae, col = Type)) +
+  geom_point() + 
+  geom_hline(data = prlr_gof[prlr_gof$model_id=="intercept",],
+             aes(yintercept = mae), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("MAE")
 
 rm("prlr_gof")
 ```
@@ -527,6 +557,16 @@ ggplot(sp_gof, aes(x = model_id, y = lms, col = Type)) +
         legend.position = "bottom") +
   xlab("Predictor") + ylab("LMS")
 
+# MAE
+ggplot(sp_gof, aes(x = model_id, y = mae, col = Type)) +
+  geom_point() + 
+  geom_hline(data = sp_gof[sp_gof$model_id=="intercept",],
+             aes(yintercept = mae), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("MAE")
+
 rm("sp_gof")
 ```
 
@@ -662,7 +702,6 @@ ggplot(nino_gof, aes(x = model_id, y = waic, col = Type)) +
         legend.position = "bottom") +
   xlab("Predictor") + ylab("WAIC")
 
-
 # LMS
 ggplot(nino_gof, aes(x = model_id, y = lms, col = Type)) +
   geom_point() + 
@@ -672,6 +711,16 @@ ggplot(nino_gof, aes(x = model_id, y = lms, col = Type)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
         legend.position = "bottom") +
   xlab("Predictor") + ylab("LMS")
+
+# MAE
+ggplot(nino_gof, aes(x = model_id, y = mae, col = Type)) +
+  geom_point() + 
+  geom_hline(data = nino_gof[nino_gof$model_id=="intercept",],
+             aes(yintercept = mae), alpha = 0.3, lty = 2) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        legend.position = "bottom") +
+  xlab("Predictor") + ylab("MAE")
 
 rm("nino_gof")
 ```
