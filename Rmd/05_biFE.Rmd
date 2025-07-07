@@ -1,0 +1,485 @@
+---
+title: "Bivariate FE models"
+author: "Carles Milà"
+date: "2025-07-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("dplyr")
+library("forcats")
+library("sf")
+library("ggplot2")
+library("cowplot")
+library("forcats")
+
+# Env: Local
+```
+
+```{r baseline}
+baseline <- read.csv("output/bi_fe/baseline_gof.csv")
+baseline$model_id <- "intercept"
+baseline$Type <- "Baseline"
+```
+
+# M1: tas6 + tasan6 (lags 0-3)
+
+## Table of models
+
+```{r m1tab}
+mtab <- read.csv("output/bi_fe/m1_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m1gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m1_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/tas_rep2_gof.csv") |> 
+  filter(covariate_1 == "f(koppen_id, tas6, model = 'iid')") |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/tasan_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, tasan6", c("", ".l1", ".l2", ".l3"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod1.
+
+```{r m1coef}
+mcoef <- readRDS("output/bi_fe/m1_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod1",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod1",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M2: tas12 + tasan12 (lags 0-3)
+
+## Table of models
+
+```{r m2tab}
+mtab <- read.csv("output/bi_fe/m2_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m2gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m2_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/tas_rep2_gof.csv") |> 
+  filter(covariate_1 == "f(koppen_id, tas12, model = 'iid')") |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/tasan_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, tasan12", c("", ".l1", ".l2", ".l3"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod3.
+
+```{r m2coef}
+mcoef <- readRDS("output/bi_fe/m2_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M3: spei12 (lags 2-6) + spei3 (lags 0-2)
+
+## Table of models
+
+```{r m3tab}
+mtab <- read.csv("output/bi_fe/m3_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m3gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m3_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  filter(covariate_1 %in% paste0("f(koppen_id, spei12", c(".l2", ".l3", ".l4", ".l5", ".l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, spei3", c("", ".l1", ".l2"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod7.
+
+```{r m3coef}
+mcoef <- readRDS("output/bi_fe/m3_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod7",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod7",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M4: spei12 (lags 2-6) + spei1 (lags 0-3)
+
+## Table of models
+
+```{r m4tab}
+mtab <- read.csv("output/bi_fe/m4_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m4gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m4_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  filter(covariate_1 %in% paste0("f(koppen_id, spei12", c(".l2", ".l3", ".l4", ".l5", ".l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, spei1", c("", ".l1", ".l2", ".l3"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod11.
+
+```{r m4coef}
+mcoef <- readRDS("output/bi_fe/m4_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod11",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod11",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M5: spei6 (lags 4-6) + spei6 (lags 0-3)
+
+## Table of models
+
+```{r m5tab}
+mtab <- read.csv("output/bi_fe/m5_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m5gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m5_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  filter(covariate_1 %in% paste0("f(koppen_id, spei6", c(".l4", ".l5", ".l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, spei6", c("", ".l1", ".l2", ".l3"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod6.
+
+```{r m5coef}
+mcoef <- readRDS("output/bi_fe/m5_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod6",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod6",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M6: spei12 (lags 1-4) + nino6 (lags 4-6)
+
+## Table of models
+
+```{r m6tab}
+mtab <- read.csv("output/bi_fe/m6_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m6gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m6_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  filter(covariate_1 %in% paste0("f(koppen_id, spei12", c(".l1", ".l2", ".l3", ".l4", ".l5", ".l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/nino_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, nino6", c(".l4", ".l5", ".l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod3.
+
+```{r m6coef}
+mcoef <- readRDS("output/bi_fe/m6_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
+
+# M7: spei12 (lags 1-4) + oni (lags 5-6)
+
+## Table of models
+
+```{r m7tab}
+mtab <- read.csv("output/bi_fe/m7_vars.csv")
+mtab$ID <- paste0(paste0("mod", 1:nrow(mtab)))
+knitr::kable(mtab[c("ID", "c1", "c2")])
+```
+
+## GOF
+
+```{r m7gof, fig.width=9, fig.height=4}
+# Read gof
+mgof <- read.csv("output/bi_fe/m7_gof.csv") |> 
+  select(model_id, dic, waic, mae, lms, rmse) 
+mgof_uni1 <- read.csv("output/uni_fe/sp_rep2_gof.csv") |> 
+  filter(covariate_1 %in% paste0("f(koppen_id, spei12", c(".l1", ".l2", ".l3", ".l4"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni2 <- read.csv("output/uni_fe/nino_rep2_gof.csv") |>  
+  filter(covariate_1 %in% paste0("f(koppen_id, oni", c(".l5", "l6"),
+                                 ", model = 'iid')")) |> 
+  select(model_id, covariate_1, dic, waic, mae, lms, rmse)
+mgof_uni <- rbind(mgof_uni1, mgof_uni2) |> 
+  mutate(model_id = covariate_1,
+         model_id = gsub("f(koppen_id, ", "", model_id, fixed = TRUE),
+         model_id = gsub(", model = 'iid')", "", model_id, fixed = TRUE)) |> 
+  select(-covariate_1)
+mgof_all <- rbind(mgof_uni, mgof) |> 
+  mutate(model_id = fct_inorder(model_id)) |> 
+  mutate(type = ifelse(!grepl("mod", model_id), "univariate", "bivariate"))
+  
+# DIC
+plot_gof(mgof_all, metric = "dic", var_color = "type")
+
+# WAIC
+plot_gof(mgof_all, metric = "waic", var_color = "type")
+
+# LMS
+plot_gof(mgof_all, metric = "lms", var_color = "type")
+
+# MAE
+plot_gof(mgof_all, metric = "mae", var_color = "type")
+```
+
+## Estimates
+
+Best model only: mod3.
+
+```{r m7coef}
+mcoef <- readRDS("output/bi_fe/m7_mod.rds")
+plist <- list()
+plist[[1]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id") 
+plist[[2]] <- plot_coef_varying(mcoef, 
+                                mod_id = "mod3",
+                                name = "koppen_id2") 
+plot_grid(plotlist = plist, ncol = 2)
+
+rm("mgof")
+rm("mcoef", "plist")
+```
