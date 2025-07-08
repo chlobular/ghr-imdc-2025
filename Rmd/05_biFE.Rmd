@@ -25,6 +25,12 @@ library("forcats")
 # Env: Local
 ```
 
+```{r koppen levels}
+koppen_labs <- c("Am","Af","Aw","As","BSh","Cwb","Cwa","Cfa","Cfb")
+names(koppen_labs) <- as.character(1:9)
+```
+
+
 ```{r baseline}
 baseline <- read.csv("output/bi_fe/baseline_gof.csv")
 baseline$model_id <- "intercept"
@@ -85,10 +91,12 @@ mcoef <- readRDS("output/bi_fe/m1_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod1",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs)  
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod1",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -214,10 +222,12 @@ mcoef <- readRDS("output/bi_fe/m3_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod7",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs) 
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod7",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -279,10 +289,12 @@ mcoef <- readRDS("output/bi_fe/m4_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod11",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs) 
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod11",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -344,10 +356,12 @@ mcoef <- readRDS("output/bi_fe/m5_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod6",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs)  
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod6",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -409,10 +423,12 @@ mcoef <- readRDS("output/bi_fe/m6_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod3",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs) 
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod3",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -474,10 +490,12 @@ mcoef <- readRDS("output/bi_fe/m7_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod3",
-                                name = "koppen_id") 
+                                name = "koppen_id", 
+                                unit_label = koppen_labs) 
 plist[[2]] <- plot_coef_varying(mcoef, 
                                 mod_id = "mod3",
-                                name = "koppen_id2") 
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs) 
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")

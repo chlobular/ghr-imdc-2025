@@ -19,18 +19,18 @@
 library("dplyr")
 library("INLA")
 library("spdep")
-library("GHRmodel") # Comment if in MN5
+# library("GHRmodel") # Comment if in MN5
 
 # Local packages in MN5 
-# library("GHRmodel", lib.loc = "/gpfs/scratch/bsc32/bsc498895/libraries/")
+library("GHRmodel", lib.loc = "/gpfs/scratch/bsc32/bsc498895/libraries/")
 
 # Relative paths in MN5 
-# setwd("/gpfs/scratch/bsc32/bsc498895/sprint2025")
+setwd("/gpfs/scratch/bsc32/bsc498895/sprint2025")
 
 # Read data
 data <- read.csv("data/processed/weekly_data.csv")
 data$koppen_id2 <- data$koppen_id
-data <- data[data$year >= 2023,] # For debugging only
+# data <- data[data$year >= 2023,] # For debugging only
 
 
 # 1. Priors, graph, utils ----
@@ -55,14 +55,14 @@ re_y <- "f(year_id, model = 'iid', hyper = precision.prior, constr = TRUE)"
 
 # 3. FE ----
 
-# M0: baseline 
+# M0: baseline
 baseline_vars <- "baseline"
 baseline_form <- list()
 baseline_form[[1]] <- ""
 data_baseline <- data[c("hr_id", "week_id", "year_id", "nino_id", "state_id")]
 
 # M1: tas6 + tasan6 (lags 0-3)
-c1 <- "tas6"
+c1 <- c("tas6", "tas6.l1", "tas6.l2", "tas6.l3")
 c2 <- c("tasan6", "tasan6.l1", "tasan6.l2", "tasan6.l3")
 all(c(c1, c2) %in% names(data))
 m1_form <- expand.grid(c1, c2, stringsAsFactors = FALSE)
@@ -74,7 +74,7 @@ write.csv(m1_form, row.names = FALSE, "output/bi_fe/m1_vars.csv")
 rm("c1", "c2")
 
 # M2: tas12 + tasan12 (lags 0-3)
-c1 <- "tas12"
+c1 <- c("tas12", "tas12.l1", "tas12.l2", "tas12.l3")
 c2 <- c("tasan12", "tasan12.l1", "tasan12.l2", "tasan12.l3")
 all(c(c1, c2) %in% names(data))
 m2_form <- expand.grid(c1, c2, stringsAsFactors = FALSE)
@@ -84,7 +84,6 @@ m2_form$form <- write_FE_form(
          unlist(cov_varying(m2_form$c2, pattern = "", unit = "koppen_id2"))))
 write.csv(m2_form, row.names = FALSE, "output/bi_fe/m2_vars.csv")
 rm("c1", "c2")
-
 
 # M3: spei12 (lags 2-6) + spei3 (lags 0-2)
 c1 <- c("spei12.l2", "spei12.l3", "spei12.l4", "spei12.l5", "spei12.l6")
@@ -116,7 +115,7 @@ c2 <- c("spei6", "spei6.l1", "spei6.l2", "spei6.l3")
 all(c(c1, c2) %in% names(data))
 m5_form <- expand.grid(c1, c2, stringsAsFactors = FALSE)
 names(m5_form) <- c("c1", "c2")
-m5_form <- m5_form[!(m5_form$c1=="spei6.l4" & m5_form$c2=="spei6.l3"),] 
+m5_form <- m5_form[!(m5_form$c1=="spei6.l4" & m5_form$c2=="spei6.l3"),]
 m5_form$form <- write_FE_form(
   paste0(unlist(cov_varying(m5_form$c1, pattern = "", unit = "koppen_id")), " + ",
          unlist(cov_varying(m5_form$c2, pattern = "", unit = "koppen_id2"))))
@@ -150,7 +149,7 @@ rm("c1", "c2")
 
 # 4. Fit models ----
 
-# M0: baseline 
+# M0: baseline
 sprint_mod(baseline_form, data, "output/bi_fe", "baseline")
 
 # M1: tas6 + tasan6 (lags 0-3)
