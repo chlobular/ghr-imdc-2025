@@ -303,10 +303,30 @@ plot_correlation(datacor, var = names(datacor))
 
 # Top raw correlations
 
-```{r top}
+```{r top, eval=FALSE}
 datacor <- dengue_data
 datacor$inc <- datacor$casos/datacor$pop
 datacor <- datacor[,30:ncol(datacor)] |> 
   select(-ends_with("id"))
 corr_var(datacor, var = "inc", top = 20)
+```
+
+# Spatial distribution
+
+Case counts and incidence computed for the entire period.
+
+```{r spatial distr, fig.width=8, fig.height=8}
+p1 <- plot_map(dengue_data, var = "casos", type = "counts",
+               area = "regional_geocode", time = "date",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE, transform = "log10p1") 
+p2 <- plot_map(dengue_data, var = "casos", type = "inc",
+               area = "regional_geocode", time = "date", pop = "pop",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE, transform = "log10p1", palette = "Green")
+p3 <- plot_map(dengue_data, var = "koppen", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+plot_grid(p1, p2, p3, nrow = 2)
 ```
