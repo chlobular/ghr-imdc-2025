@@ -84,7 +84,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod1.
+mod1.
 
 ```{r m1coef}
 mcoef <- readRDS("output/bi_fe/m1_mod.rds")
@@ -150,17 +150,19 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod3.
+mod1.
 
 ```{r m2coef}
 mcoef <- readRDS("output/bi_fe/m2_mod.rds")
 plist <- list()
 plist[[1]] <- plot_coef_varying(mcoef, 
-                                mod_id = "mod3",
-                                name = "koppen_id") 
+                                mod_id = "mod1",
+                                name = "koppen_id", 
+                                unit_label = koppen_labs)  
 plist[[2]] <- plot_coef_varying(mcoef, 
-                                mod_id = "mod3",
-                                name = "koppen_id2") 
+                                mod_id = "mod1",
+                                name = "koppen_id2", 
+                                unit_label = koppen_labs)  
 plot_grid(plotlist = plist, ncol = 2)
 
 rm("mgof")
@@ -215,7 +217,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod7.
+mod7.
 
 ```{r m3coef}
 mcoef <- readRDS("output/bi_fe/m3_mod.rds")
@@ -282,7 +284,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod11.
+mod11.
 
 ```{r m4coef}
 mcoef <- readRDS("output/bi_fe/m4_mod.rds")
@@ -349,7 +351,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod6.
+mod6.
 
 ```{r m5coef}
 mcoef <- readRDS("output/bi_fe/m5_mod.rds")
@@ -416,7 +418,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod3.
+mod3.
 
 ```{r m6coef}
 mcoef <- readRDS("output/bi_fe/m6_mod.rds")
@@ -483,7 +485,7 @@ plot_gof(mgof_all, metric = "mae", var_color = "type")
 
 ## Estimates
 
-Best model only: mod3.
+mod3.
 
 ```{r m7coef}
 mcoef <- readRDS("output/bi_fe/m7_mod.rds")
