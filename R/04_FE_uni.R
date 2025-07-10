@@ -2,7 +2,7 @@
 # Fixed effects: univariate ====================================================
 # 
 # Description:
-#     Fit complete random effect models for selection
+#     Univariate FE model selection
 # 
 # Script authors:
 #     Carles Milà  (carles.milagarcia@bsc.es)

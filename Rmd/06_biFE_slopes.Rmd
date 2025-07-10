@@ -1,0 +1,428 @@
+---
+title: "Bivariate FE models"
+author: "Carles Milà"
+date: "2025-07-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("GHRexplore")
+library("dplyr")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+# Env: Local
+```
+
+```{r spatial units}
+data <- read.csv("data/processed/weekly_data.csv") 
+data <- data[data$year >= 2023,] # For debugging only
+healthreg <- read_sf("data/boundaries/clean_hr.gpkg")
+
+# Region 
+data$region <- as.factor(data$region)
+
+# Level 1 koppen (A, B, C)
+data$koppen_lvl1 <- substr(data$koppen, 1, 1)
+
+# Mixed koppen 1 (Af+Am, As+Aw, B, C)
+data$koppen_mixed1 <- case_when(
+  data$koppen %in% c("Af", "Am") ~ "Af+Am",
+  data$koppen %in% c("As", "Aw") ~ "As+Aw",
+  substr(data$koppen, 1, 1) == "B" ~ "B",
+  substr(data$koppen, 1, 1) == "C" ~ "C"
+)
+
+# Mixed koppen 2 (Af, Am+As, Aw, B, C)
+data$koppen_mixed2 <- case_when(
+  data$koppen == "Af" ~ "Af",
+  data$koppen %in% c("Am", "As") ~ "Am+As",
+  data$koppen == "Aw" ~ "Aw",
+  substr(data$koppen, 1, 1) == "B" ~ "B",
+  substr(data$koppen, 1, 1) == "C" ~ "C"
+)
+
+# Labels 
+region_labs <- unique(data$region); names(region_labs) <- 1:length(region_labs)
+koppen_labs <- unique(data$koppen); names(koppen_labs) <- 1:length(koppen_labs)
+koppen_lvl1_labs <- unique(data$koppen_lvl1); names(koppen_lvl1_labs) <- 1:length(koppen_lvl1_labs)
+koppen_mixed1_labs <- unique(data$koppen_mixed1); names(koppen_mixed1_labs) <- 1:length(koppen_mixed1_labs)
+koppen_mixed2_labs <- unique(data$koppen_mixed2); names(koppen_mixed2_labs) <- 1:length(koppen_mixed2_labs)
+```
+
+# Spatial units
+
+```{r maps, fig.height=6, fig.width=9}
+p1 <- plot_map(data, var = "region", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode",
+               by_year = FALSE)
+p2 <- plot_map(data, var = "koppen", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+p3 <- plot_map(data, var = "koppen_lvl1", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+p4 <- plot_map(data, var = "koppen_mixed1", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+p5 <- plot_map(data, var = "koppen_mixed2", 
+               time = "date", area = "regional_geocode",
+               map = healthreg, map_area = "regional_geocode", 
+               by_year = FALSE)
+plot_grid(p1, p2, p3, p4, p5, nrow = 2)
+rm("dengue_data", "healthreg")
+```
+
+# GOF
+
+```{r mod table}
+modtab <- data.frame(model_id = 1:5,
+                     var1 = c("tas6", "tas6.l1", "spei12.l2", "spei12.l3", "spei12.l3"),
+                     var2 = c("tasan6", "tasan6.l1", "spei3", "spei3", "spei3.l1"))
+knitr::kable(modtab)
+```
+
+```{r gof read, fig.width=9, fig.height=3}
+gof1 <- read.csv("output/bi_fe_slopes/region_gof.csv") |> 
+  mutate(slopes = "Region")
+gof2 <- read.csv("output/bi_fe_slopes/koppen_gof.csv") |> 
+  mutate(slopes = "Koppen")
+gof3 <- read.csv("output/bi_fe_slopes/koppen_lvl1_gof.csv") |> 
+  mutate(slopes = "Koppen lvl1")
+gof4 <- read.csv("output/bi_fe_slopes/koppen_mixed1_gof.csv") |> 
+  mutate(slopes = "Koppen mixed1")
+gof5 <- read.csv("output/bi_fe_slopes/koppen_mixed2_gof.csv") |> 
+  mutate(slopes = "Koppen mixed2")
+gof_all <- rbind(gof1, gof2, gof3, gof4, gof5)
+
+ggplot(gof_all) +
+  geom_point(aes(x = model_id, y = dic, col = slopes)) +
+  theme_bw() + ylab("DIC")
+  
+ggplot(gof_all) +
+  geom_point(aes(x = model_id, y = waic, col = slopes)) +
+  theme_bw() + ylab("WAIC")
+
+ggplot(gof_all) +
+  geom_point(aes(x = model_id, y = lms, col = slopes)) +
+  theme_bw() + ylab("LMS")
+
+ggplot(gof_all) +
+  geom_point(aes(x = model_id, y = mae, col = slopes)) +
+  theme_bw() + ylab("MAE")
+```
+
+```{r read mods}
+mod_region <- readRDS("output/bi_fe_slopes/region_mod.rds")
+mod_koppen <- readRDS("output/bi_fe_slopes/koppen_mod.rds")
+mod_koppen_lvl1 <- readRDS("output/bi_fe_slopes/koppen_lvl1_mod.rds")
+mod_koppen_mixed1 <- readRDS("output/bi_fe_slopes/koppen_mixed1_mod.rds")
+mod_koppen_mixed2 <- readRDS("output/bi_fe_slopes/koppen_mixed2_mod.rds")
+```
+
+# Effects: tas6 + tasan6
+
+```{r effects mod1, fig.width=8, fig.height=3}
+# Region
+p1 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod1",
+                        name = "region_id", 
+                        unit_label = region_labs) 
+p2 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod1",
+                        name = "region_id2", 
+                        unit_label = region_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen
+p1 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod1",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod1",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen lvl1
+p1 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod1",
+                        name = "koppen_lvl1_id", 
+                        unit_label = koppen_lvl1_labs) 
+p2 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod1",
+                        name = "koppen_lvl1_id2", 
+                        unit_label = koppen_lvl1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed1
+p1 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod1",
+                        name = "koppen_mixed1_id", 
+                        unit_label = koppen_mixed1_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod1",
+                        name = "koppen_mixed1_id2", 
+                        unit_label = koppen_mixed1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed2
+p1 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod1",
+                        name = "koppen_mixed2_id", 
+                        unit_label = koppen_mixed2_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod1",
+                        name = "koppen_mixed2_id2", 
+                        unit_label = koppen_mixed2_labs) 
+plot_grid(p1, p2, nrow = 1)
+```
+
+# Effects: tas6.l1 + tasan6.l1
+
+```{r effects mod2, fig.width=8, fig.height=3}
+# Region
+p1 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod2",
+                        name = "region_id", 
+                        unit_label = region_labs) 
+p2 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod2",
+                        name = "region_id2", 
+                        unit_label = region_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen
+p1 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod2",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod2",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen lvl1
+p1 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod2",
+                        name = "koppen_lvl1_id", 
+                        unit_label = koppen_lvl1_labs) 
+p2 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod2",
+                        name = "koppen_lvl1_id2", 
+                        unit_label = koppen_lvl1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed1
+p1 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod2",
+                        name = "koppen_mixed1_id", 
+                        unit_label = koppen_mixed1_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod2",
+                        name = "koppen_mixed1_id2", 
+                        unit_label = koppen_mixed1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed2
+p1 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod2",
+                        name = "koppen_mixed2_id", 
+                        unit_label = koppen_mixed2_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod2",
+                        name = "koppen_mixed2_id2", 
+                        unit_label = koppen_mixed2_labs) 
+plot_grid(p1, p2, nrow = 1)
+```
+
+# Effects: spei12.l2 + spei3
+
+```{r effects mod3, fig.width=8, fig.height=3}
+# Region
+p1 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod3",
+                        name = "region_id", 
+                        unit_label = region_labs) 
+p2 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod3",
+                        name = "region_id2", 
+                        unit_label = region_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen
+p1 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod3",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod3",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen lvl1
+p1 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod3",
+                        name = "koppen_lvl1_id", 
+                        unit_label = koppen_lvl1_labs) 
+p2 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod3",
+                        name = "koppen_lvl1_id2", 
+                        unit_label = koppen_lvl1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed1
+p1 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod3",
+                        name = "koppen_mixed1_id", 
+                        unit_label = koppen_mixed1_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod3",
+                        name = "koppen_mixed1_id2", 
+                        unit_label = koppen_mixed1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed2
+p1 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod3",
+                        name = "koppen_mixed2_id", 
+                        unit_label = koppen_mixed2_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod3",
+                        name = "koppen_mixed2_id2", 
+                        unit_label = koppen_mixed2_labs) 
+plot_grid(p1, p2, nrow = 1)
+```
+
+# Effects: spei12.l3 + spei3
+```{r effects mod4, fig.width=8, fig.height=3}
+# Region
+p1 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod4",
+                        name = "region_id", 
+                        unit_label = region_labs) 
+p2 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod4",
+                        name = "region_id2", 
+                        unit_label = region_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen
+p1 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod4",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod4",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen lvl1
+p1 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod4",
+                        name = "koppen_lvl1_id", 
+                        unit_label = koppen_lvl1_labs) 
+p2 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod4",
+                        name = "koppen_lvl1_id2", 
+                        unit_label = koppen_lvl1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed1
+p1 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod4",
+                        name = "koppen_mixed1_id", 
+                        unit_label = koppen_mixed1_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod4",
+                        name = "koppen_mixed1_id2", 
+                        unit_label = koppen_mixed1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed2
+p1 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod4",
+                        name = "koppen_mixed2_id", 
+                        unit_label = koppen_mixed2_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod4",
+                        name = "koppen_mixed2_id2", 
+                        unit_label = koppen_mixed2_labs) 
+plot_grid(p1, p2, nrow = 1)
+```
+
+# Effects: spei12.l3 + spei3.l1
+```{r effects mod5, fig.width=8, fig.height=3}
+# Region
+p1 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod5",
+                        name = "region_id", 
+                        unit_label = region_labs) 
+p2 <- plot_coef_varying(mod_region, 
+                        mod_id = "mod5",
+                        name = "region_id2", 
+                        unit_label = region_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen
+p1 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod5",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod_koppen, 
+                        mod_id = "mod5",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen lvl1
+p1 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod5",
+                        name = "koppen_lvl1_id", 
+                        unit_label = koppen_lvl1_labs) 
+p2 <- plot_coef_varying(mod_koppen_lvl1, 
+                        mod_id = "mod5",
+                        name = "koppen_lvl1_id2", 
+                        unit_label = koppen_lvl1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed1
+p1 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod5",
+                        name = "koppen_mixed1_id", 
+                        unit_label = koppen_mixed1_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed1, 
+                        mod_id = "mod5",
+                        name = "koppen_mixed1_id2", 
+                        unit_label = koppen_mixed1_labs) 
+plot_grid(p1, p2, nrow = 1)
+
+# Koppen mixed2
+p1 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod5",
+                        name = "koppen_mixed2_id", 
+                        unit_label = koppen_mixed2_labs) 
+p2 <- plot_coef_varying(mod_koppen_mixed2, 
+                        mod_id = "mod5",
+                        name = "koppen_mixed2_id2", 
+                        unit_label = koppen_mixed2_labs) 
+plot_grid(p1, p2, nrow = 1)
+```

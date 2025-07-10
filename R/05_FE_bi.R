@@ -2,7 +2,7 @@
 # Fixed effects: bivariate ====================================================
 # 
 # Description:
-#     Fit complete random effect models for selection
+#     Bivariate FE model selection
 # 
 # Script authors:
 #     Carles Milà  (carles.milagarcia@bsc.es)
