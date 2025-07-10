@@ -32,8 +32,12 @@ healthreg <- read_sf("data/boundaries/clean_hr.gpkg")
 # Region 
 data$region <- as.factor(data$region)
 
+# Koppen
+data$koppen <- as.factor(data$koppen)
+
 # Level 1 koppen (A, B, C)
-data$koppen_lvl1 <- substr(data$koppen, 1, 1)
+data$koppen_lvl1 <- substr(as.character(data$koppen), 1, 1)
+data$koppen_lvl1 <- as.factor(data$koppen_lvl1)
 
 # Mixed koppen 1 (Af+Am, As+Aw, B, C)
 data$koppen_mixed1 <- case_when(
@@ -42,6 +46,7 @@ data$koppen_mixed1 <- case_when(
   substr(data$koppen, 1, 1) == "B" ~ "B",
   substr(data$koppen, 1, 1) == "C" ~ "C"
 )
+data$koppen_mixed1 <- as.factor(data$koppen_mixed1)
 
 # Mixed koppen 2 (Af, Am+As, Aw, B, C)
 data$koppen_mixed2 <- case_when(
@@ -51,13 +56,14 @@ data$koppen_mixed2 <- case_when(
   substr(data$koppen, 1, 1) == "B" ~ "B",
   substr(data$koppen, 1, 1) == "C" ~ "C"
 )
+data$koppen_mixed2 <- as.factor(data$koppen_mixed2)
 
 # Labels 
-region_labs <- unique(data$region); names(region_labs) <- 1:length(region_labs)
-koppen_labs <- unique(data$koppen); names(koppen_labs) <- 1:length(koppen_labs)
-koppen_lvl1_labs <- unique(data$koppen_lvl1); names(koppen_lvl1_labs) <- 1:length(koppen_lvl1_labs)
-koppen_mixed1_labs <- unique(data$koppen_mixed1); names(koppen_mixed1_labs) <- 1:length(koppen_mixed1_labs)
-koppen_mixed2_labs <- unique(data$koppen_mixed2); names(koppen_mixed2_labs) <- 1:length(koppen_mixed2_labs)
+region_labs <- levels(data$region); names(region_labs) <- 1:length(region_labs)
+koppen_labs <- levels(data$koppen); names(koppen_labs) <- 1:length(koppen_labs)
+koppen_lvl1_labs <- levels(data$koppen_lvl1); names(koppen_lvl1_labs) <- 1:length(koppen_lvl1_labs)
+koppen_mixed1_labs <- levels(data$koppen_mixed1); names(koppen_mixed1_labs) <- 1:length(koppen_mixed1_labs)
+koppen_mixed2_labs <- levels(data$koppen_mixed2); names(koppen_mixed2_labs) <- 1:length(koppen_mixed2_labs)
 ```
 
 # Spatial units
