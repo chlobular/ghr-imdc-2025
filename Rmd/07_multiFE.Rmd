@@ -1,0 +1,257 @@
+---
+title: "Bivariate FE models"
+author: "Carles Milà"
+date: "2025-07-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("GHRexplore")
+library("dplyr")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+# Env: Local
+```
+
+# Table of models
+
+```{r table}
+modtab <- read.csv("output/multi_fe/covs.csv")
+modtab$model_id <- 1:nrow(modtab)
+modtab <- modtab[c("model_id", "v1", "v2", "v3", "v4")]
+knitr::kable(modtab)
+```
+
+# GOF
+
+```{r gof, fig.width=8, fig.height=3}
+modgof <- read.csv("output/multi_fe/multi_gof.csv")
+plot_gof(modgof, "dic")
+plot_gof(modgof, "waic")
+plot_gof(modgof, "lms")
+plot_gof(modgof, "mae")
+```
+
+# Effects
+
+```{r effects prep}
+mod <- readRDS("output/multi_fe/multi_mod.rds")
+data <- read.csv("data/processed/weekly_data.csv") 
+data <- data[data$year >= 2023,] # For debugging only
+koppen_labs <- levels(as.factor(data$koppen)); names(koppen_labs) <- 1:length(koppen_labs)
+```
+
+## Model 1
+
+```{r effects mod1, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod1",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod1",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod1",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, nrow = 1)
+```
+
+## Model 2
+
+```{r effects mod2, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod2",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod2",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod2",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, nrow = 1)
+```
+
+## Model 3
+
+```{r effects mod3, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod3",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod3",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod3",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod3",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+## Model 4
+
+```{r effects mod4, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod4",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod4",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod4",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod4",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+## Model 5
+
+```{r effects mod5, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod5",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod5",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod5",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod5",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+## Model 6
+
+```{r effects mod6, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod6",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod6",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod6",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, nrow = 1)
+```
+
+## Model 7
+
+```{r effects mod7, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod7",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod7",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod7",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, nrow = 1)
+```
+
+## Model 8
+
+```{r effects mod8, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod8",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod8",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod8",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod8",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+## Model 9
+
+```{r effects mod9, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod9",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod9",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod9",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod9",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+## Model 10
+
+```{r effects mod10, fig.width=9, fig.height=4}
+p1 <- plot_coef_varying(mod, 
+                        mod_id = "mod10",
+                        name = "koppen_id", 
+                        unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, 
+                        mod_id = "mod10",
+                        name = "koppen_id2", 
+                        unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, 
+                        mod_id = "mod10",
+                        name = "koppen_id3", 
+                        unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, 
+                        mod_id = "mod10",
+                        name = "koppen_id4", 
+                        unit_label = koppen_labs) 
+cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
