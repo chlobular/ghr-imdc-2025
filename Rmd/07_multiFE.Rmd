@@ -1,5 +1,5 @@
 ---
-title: "Bivariate FE models"
+title: "Multivariable FE models"
 author: "Carles Milà"
 date: "2025-07-07"
 output:
@@ -48,7 +48,6 @@ plot_gof(modgof, "mae")
 ```{r effects prep}
 mod <- readRDS("output/multi_fe/multi_mod.rds")
 data <- read.csv("data/processed/weekly_data.csv") 
-data <- data[data$year >= 2023,] # For debugging only
 koppen_labs <- levels(as.factor(data$koppen)); names(koppen_labs) <- 1:length(koppen_labs)
 ```
 
@@ -254,4 +253,38 @@ p4 <- plot_coef_varying(mod,
                         name = "koppen_id4", 
                         unit_label = koppen_labs) 
 cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
+```
+
+
+# RE
+
+```{r re - spatial, fig.height=6, fig.width=8}
+healthreg <- read_sf("data/boundaries/clean_hr.gpkg")
+mod_base <- readRDS("output/multi_re/mod13/train_mod.rds")
+
+p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "hr_id", rep_id = "nino_id",
+        map = healthreg, map_area = "regional_geocode", title = "Baseline")
+p2 <- plot_re(mod, mod_id = "mod10", re_id = "hr_id", rep_id = "nino_id",
+        map = healthreg, map_area = "regional_geocode", title = "Model 10")
+plot_grid(p1, p2, nrow = 2)
+```
+
+```{r re - weekly, fig.height=5, fig.width=10}
+p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "week_id",
+        rep_id = "state_id", title = "Baseline") +
+  theme(legend.position = "none")
+p2 <- plot_re(mod, mod_id = "mod10", re_id = "week_id",
+        rep_id = "state_id", title = "Model 10") +
+  theme(legend.position = "none")
+plot_grid(p1, p2, nrow = 1)
+```
+
+```{r re base - yearly, fig.height=4, fig.width=8}
+p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "year_id", 
+        title = "Interannual RE") +
+  theme(legend.position = "none")
+p2 <- plot_re(mod, mod_id = "mod10", re_id = "year_id", 
+        title = "Interannual RE") +
+  theme(legend.position = "none")
+plot_grid(p1, p2, nrow = 1)
 ```
