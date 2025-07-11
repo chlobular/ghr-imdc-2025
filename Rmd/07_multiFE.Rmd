@@ -281,10 +281,10 @@ plot_grid(p1, p2, nrow = 1)
 
 ```{r re base - yearly, fig.height=4, fig.width=8}
 p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "year_id", 
-        title = "Interannual RE") +
+        title = "Baseline") +
   theme(legend.position = "none")
 p2 <- plot_re(mod, mod_id = "mod10", re_id = "year_id", 
-        title = "Interannual RE") +
+        title = "Model 10") +
   theme(legend.position = "none")
 plot_grid(p1, p2, nrow = 1)
 ```
