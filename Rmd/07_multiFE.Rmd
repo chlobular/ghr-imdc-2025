@@ -235,7 +235,7 @@ cowplot::plot_grid(p1, p2, p3, p4, nrow = 1)
 
 ## Model 10
 
-```{r effects mod10, fig.width=9, fig.height=4}
+```{r effects mod10, fig.width=9, fig.height=5}
 p1 <- plot_coef_varying(mod, 
                         mod_id = "mod10",
                         name = "koppen_id", 
@@ -269,22 +269,21 @@ p2 <- plot_re(mod, mod_id = "mod10", re_id = "hr_id", rep_id = "nino_id",
 plot_grid(p1, p2, nrow = 2)
 ```
 
-```{r re - weekly, fig.height=5, fig.width=10}
-p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "week_id",
-        rep_id = "state_id", title = "Baseline") +
-  theme(legend.position = "none")
-p2 <- plot_re(mod, mod_id = "mod10", re_id = "week_id",
-        rep_id = "state_id", title = "Model 10") +
-  theme(legend.position = "none")
-plot_grid(p1, p2, nrow = 1)
+```{r re - weekly, fig.height=6, fig.width=8}
+mod_merge <- stack_models(mod_base, mod)
+plot_re(mod_merge, mod_id = c("mod131", "mod10"), re_id = "week_id",
+        rep_id = "state_id", title = "Weekly effect") +
+  scale_color_manual(labels = c("Baseline", "Model 10"), 
+                     values = c("navy", "tomato")) +
+  scale_size_manual(values = 0.5) +
+  theme(legend.position = "bottom")
 ```
 
-```{r re base - yearly, fig.height=4, fig.width=8}
-p1 <- plot_re(mod_base, mod_id = "mod131", re_id = "year_id", 
-        title = "Baseline") +
-  theme(legend.position = "none")
-p2 <- plot_re(mod, mod_id = "mod10", re_id = "year_id", 
-        title = "Model 10") +
-  theme(legend.position = "none")
-plot_grid(p1, p2, nrow = 1)
+```{r re base - yearly, fig.height=4, fig.width=6}
+plot_re(mod_merge, mod_id = c("mod131", "mod10"), re_id = "year_id",
+        title = "Yearly effect") +
+  scale_color_manual(labels = c("Baseline", "Model 10"), 
+                     values = c("navy", "tomato")) +
+  scale_size_manual(values = 0.5) +
+  theme(legend.position = "bottom")
 ```
