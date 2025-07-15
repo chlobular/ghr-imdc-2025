@@ -34,10 +34,16 @@ modgof1 <- read.csv("output/oni_fe/baseline_gof.csv") |>
 modgof2 <- read.csv("output/oni_fe/linear_gof.csv") |> 
   mutate(Model = "Linear", model_id = paste0("oni.l", 1:6)) |> 
   select(model_id, dic, waic, lms, mae, Model)
-modgod3 <- read.csv("output/oni_fe/linear_koppen_gof.csv") |> 
+modgof3 <- read.csv("output/oni_fe/linear_koppen_gof.csv") |> 
   mutate(Model = "Linear (replicated)", model_id = paste0("oni.l", 1:6)) |> 
   select(model_id, dic, waic, lms, mae, Model)
-modgof <- rbind(modgof1, modgof2, modgod3)
+modgof4 <- read.csv("output/oni_fe/equal_gof.csv") |> 
+  mutate(Model = "Non-linear (equal)", model_id = paste0("oni.l", 1:6)) |> 
+  select(model_id, dic, waic, lms, mae, Model)
+modgof5 <- read.csv("output/oni_fe/quant_gof.csv") |> 
+  mutate(Model = "Non-linear (quantile)", model_id = paste0("oni.l", 1:6)) |> 
+  select(model_id, dic, waic, lms, mae, Model)
+modgof <- rbind(modgof1, modgof2, modgof3, modgof4, modgof5)
 
 # DIC
 ggplot(modgof, aes(x = model_id, y = dic, col = Model)) +
@@ -101,5 +107,32 @@ p6 <- plot_coef_varying(mod3,
                         mod_id = "mod6",
                         name = "koppen_id5", 
                         unit_label = koppen_labs)
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## Non-linear (equal)
+
+```{r NLeq, fig.width=8, fig.height=6}
+mod4 <- readRDS("output/oni_fe/equal_mod.rds")
+p1 <- plot_coef_nl(mod4, mod_id = "mod1")
+p2 <- plot_coef_nl(mod4, mod_id = "mod2")
+p3 <- plot_coef_nl(mod4, mod_id = "mod3")
+p4 <- plot_coef_nl(mod4, mod_id = "mod4")
+p5 <- plot_coef_nl(mod4, mod_id = "mod5")
+p6 <- plot_coef_nl(mod4, mod_id = "mod6")
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+
+## Non-linear (quantile)
+
+```{r NLquant, fig.width=8, fig.height=6}
+mod5 <- readRDS("output/oni_fe/quant_mod.rds")
+p1 <- plot_coef_nl(mod5, mod_id = "mod1")
+p2 <- plot_coef_nl(mod5, mod_id = "mod2")
+p3 <- plot_coef_nl(mod5, mod_id = "mod3")
+p4 <- plot_coef_nl(mod5, mod_id = "mod4")
+p5 <- plot_coef_nl(mod5, mod_id = "mod5")
+p6 <- plot_coef_nl(mod5, mod_id = "mod6")
 cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
 ```
