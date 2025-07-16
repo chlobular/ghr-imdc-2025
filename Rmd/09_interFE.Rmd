@@ -70,3 +70,10 @@ p8 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id8", unit_label = 
 plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, nrow = 2)
 ```
 
+# Fitted
+
+```{r fit1, fig.width=10}
+plot_fit(mod, time = "date") +
+  theme(legend.position = "bottom")
+rm("mod")
+```
