@@ -2,7 +2,7 @@
 # Fixed effects: multivariate =====================================================
 # 
 # Description:
-#     Selection of multivariate climatic effects
+#     Selection of multivariate ONI effects
 # 
 # Script authors:
 #     Carles Milà  (carles.milagarcia@bsc.es)

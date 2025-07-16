@@ -1,0 +1,72 @@
+---
+title: "Interaction FE models"
+author: "Carles Milà"
+date: "2025-07-16"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("dplyr")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+# Env: Local
+data <- read.csv("data/processed/weekly_data.csv") 
+koppen_labs <- levels(as.factor(data$koppen)); names(koppen_labs) <- 1:length(koppen_labs)
+rm(data)
+```
+
+# Table of models
+
+Variable definitions:
+
+* **v1**: tasan6.l1
+* **v2**: spei3.l1
+* **v3**: spei12.l3
+
+```{r modtab}
+modtab <- read.csv("output/inter_fe/modtab.csv") |> 
+  select(-forms)
+knitr::kable(modtab)
+```
+
+# GOF
+
+```{r gof, fig.width=10, fig.height=6}
+modgof <- read.csv("output/inter_fe/inter_gof.csv") 
+
+p1 <- plot_gof(modgof, metric = "dic")
+p2 <- plot_gof(modgof, metric = "waic")
+p3 <- plot_gof(modgof, metric = "lms")
+p4 <- plot_gof(modgof, metric = "mae")
+
+plot_grid(p1, p2, p3, p4, nrow = 2)
+```
+
+# Effects
+
+## Model 7
+
+```{r effects, fig.width=10, fig.height=6}
+mod <- readRDS("output/inter_fe/inter_mod.rds")
+p1 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id", unit_label = koppen_labs) 
+p2 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id2", unit_label = koppen_labs) 
+p3 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id3", unit_label = koppen_labs) 
+p4 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id4", unit_label = koppen_labs) 
+p5 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id5", unit_label = koppen_labs) 
+p6 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id6", unit_label = koppen_labs) 
+p7 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id7", unit_label = koppen_labs) 
+p8 <- plot_coef_varying(mod, mod_id = "mod7", name = "koppen_id8", unit_label = koppen_labs) 
+plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, nrow = 2)
+```
+
