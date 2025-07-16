@@ -72,8 +72,22 @@ plot_grid(p1, p2, p3, p4, p5, p6, p7, p8, nrow = 2)
 
 # Fitted
 
+## Models in this report
+
 ```{r fit1, fig.width=10}
 plot_fit(mod, time = "date") +
   theme(legend.position = "bottom")
 rm("mod")
 ```
+
+## Same models but without the interannual
+
+Mod7 did not converge 
+
+```{r fit2, fig.width=10}
+mod2 <- readRDS("output/inter_fe2/inter_mod.rds")
+plot_fit(mod2, mod_id = paste0("mod", c(1:6, 8:10)), time = "date") +
+  theme(legend.position = "bottom")
+rm("mod")
+```
+
