@@ -91,3 +91,9 @@ plot_fit(mod2, mod_id = paste0("mod", c(1:6, 8:10)), time = "date") +
 rm("mod")
 ```
 
+## Experiments
+
+```{r}
+base_nointer <- 
+```
+

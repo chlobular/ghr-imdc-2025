@@ -19,10 +19,10 @@
 library("dplyr")
 library("INLA")
 library("spdep")
-# library("GHRmodel") # Comment if in MN5
+library("GHRmodel") # Comment if in MN5
 
 # Local packages in MN5 
-library("GHRmodel", lib.loc = "/gpfs/scratch/bsc32/bsc498895/libraries/")
+# library("GHRmodel", lib.loc = "/gpfs/scratch/bsc32/bsc498895/libraries/")
 
 # Relative paths in MN5 
 setwd("/gpfs/scratch/bsc32/bsc498895/sprint2025")

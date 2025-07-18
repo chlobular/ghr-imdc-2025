@@ -1,0 +1,227 @@
+---
+title: "ONI FE models"
+author: "Carles Milà"
+date: "2025-07-07"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("dplyr")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+# Env: Local
+# data <- read.csv("data/processed/weekly_data.csv") 
+# koppen_labs <- levels(as.factor(data$koppen)); names(koppen_labs) <- 1:length(koppen_labs)
+```
+
+
+```{r modtab}
+modtab <- read.csv("output/oni_fe/modtab.csv") |> 
+  mutate(ID = paste0("mod", 1:n())) |> 
+  select(ID, ONI, Model)
+```
+
+# GOF
+
+Baseline model: LSL with weekly and yearly random effects
+
+```{r gof, fig.width=7, fig.height=4}
+modgof1 <- read.csv("output/oni_fe/spatial_norep_gof.csv") |> 
+  mutate(SpatialRE = "Not replicated", 
+         ONI = modtab$ONI, Model = modtab$Model)  |> 
+  select(model_id, ONI, Model, SpatialRE, dic, waic, lms, mae)
+modgof2 <- read.csv("output/oni_fe/spatial_rep_gof.csv") |> 
+  mutate(SpatialRE = "Replicated",
+         ONI = modtab$ONI, Model = modtab$Model)  |> 
+  select(model_id, ONI, Model, SpatialRE, dic, waic, lms, mae)
+modgof <- rbind(modgof1, modgof2)
+
+# DIC
+ggplot(modgof, aes(x = ONI, y = dic, col = Model, pch = SpatialRE)) +
+  geom_hline(yintercept = modgof$dic[modgof$ONI == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# WAIC
+ggplot(modgof, aes(x = ONI, y = waic, col = Model, pch = SpatialRE)) +
+  geom_hline(yintercept = modgof$waic[modgof$ONI == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# LMS
+ggplot(modgof, aes(x = ONI, y = lms, col = Model, pch = SpatialRE)) +
+  geom_hline(yintercept = modgof$lms[modgof$ONI == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# MAE
+ggplot(modgof, aes(x = ONI, y = mae, col = Model, pch = SpatialRE)) +
+  geom_hline(yintercept = modgof$mae[modgof$ONI == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+```
+
+# Effects
+
+```{r}
+mod_norep <- readRDS("output/oni_fe/spatial_norep_mod.rds")
+mod_rep <- readRDS("output/oni_fe/spatial_rep_mod.rds")
+```
+
+## Linear models
+
+```{r effects linear, fig.width=6, fig.height=3}
+p1 <- plot_coef_lin(mod_norep, mod_id = paste0("mod", 1:7)) + 
+  theme(legend.position = "none") +
+  ggtitle("Non-replicated spatial RE")
+p2 <- plot_coef_lin(mod_rep, mod_id = paste0("mod", 1:7)) + 
+  theme(legend.position = "none") +
+  ggtitle("Replicated spatial RE")
+plot_grid(p1, p2, nrow = 1)
+```
+
+
+## ENSO replicated by Koppen 
+
+Non-replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_norep, mod_id = "mod20", name = "koppen_id8")
+p2 <- plot_coef_varying(mod_norep, mod_id = "mod21", name = "koppen_id8")
+p3 <- plot_coef_varying(mod_norep, mod_id = "mod22", name = "koppen_id8")
+p4 <- plot_coef_varying(mod_norep, mod_id = "mod23", name = "koppen_id8")
+p5 <- plot_coef_varying(mod_norep, mod_id = "mod24", name = "koppen_id8")
+p6 <- plot_coef_varying(mod_norep, mod_id = "mod25", name = "koppen_id8")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+Replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_rep, mod_id = "mod20", name = "koppen_id8")
+p2 <- plot_coef_varying(mod_rep, mod_id = "mod21", name = "koppen_id8")
+p3 <- plot_coef_varying(mod_rep, mod_id = "mod22", name = "koppen_id8")
+p4 <- plot_coef_varying(mod_rep, mod_id = "mod23", name = "koppen_id8")
+p5 <- plot_coef_varying(mod_rep, mod_id = "mod24", name = "koppen_id8")
+p6 <- plot_coef_varying(mod_rep, mod_id = "mod25", name = "koppen_id8")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## ENSO replicated by region
+
+Non-replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_norep, mod_id = "mod26", name = "region_id")
+p2 <- plot_coef_varying(mod_norep, mod_id = "mod27", name = "region_id")
+p3 <- plot_coef_varying(mod_norep, mod_id = "mod28", name = "region_id")
+p4 <- plot_coef_varying(mod_norep, mod_id = "mod29", name = "region_id")
+p5 <- plot_coef_varying(mod_norep, mod_id = "mod30", name = "region_id")
+p6 <- plot_coef_varying(mod_norep, mod_id = "mod31", name = "region_id")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+Replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_rep, mod_id = "mod26", name = "region_id")
+p2 <- plot_coef_varying(mod_rep, mod_id = "mod27", name = "region_id")
+p3 <- plot_coef_varying(mod_rep, mod_id = "mod28", name = "region_id")
+p4 <- plot_coef_varying(mod_rep, mod_id = "mod29", name = "region_id")
+p5 <- plot_coef_varying(mod_rep, mod_id = "mod30", name = "region_id")
+p6 <- plot_coef_varying(mod_rep, mod_id = "mod31", name = "region_id")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## ENSO replicated by biome
+
+Non-replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_norep, mod_id = "mod32", name = "biome_id")
+p2 <- plot_coef_varying(mod_norep, mod_id = "mod33", name = "biome_id")
+p3 <- plot_coef_varying(mod_norep, mod_id = "mod34", name = "biome_id")
+p4 <- plot_coef_varying(mod_norep, mod_id = "mod35", name = "biome_id")
+p5 <- plot_coef_varying(mod_norep, mod_id = "mod36", name = "biome_id")
+p6 <- plot_coef_varying(mod_norep, mod_id = "mod37", name = "biome_id")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+Replicated spatial RE
+
+```{r}
+p1 <- plot_coef_varying(mod_rep, mod_id = "mod32", name = "biome_id")
+p2 <- plot_coef_varying(mod_rep, mod_id = "mod33", name = "biome_id")
+p3 <- plot_coef_varying(mod_rep, mod_id = "mod34", name = "biome_id")
+p4 <- plot_coef_varying(mod_rep, mod_id = "mod35", name = "biome_id")
+p5 <- plot_coef_varying(mod_rep, mod_id = "mod36", name = "biome_id")
+p6 <- plot_coef_varying(mod_rep, mod_id = "mod37", name = "biome_id")
+plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## ENSO non-linear (equal)
+
+Non-replicated spatial RE
+
+```{r, fig.width=8, fig.height=4}
+p1 <- plot_coef_nl(mod_norep, mod_id = "mod8")
+p2 <- plot_coef_nl(mod_norep, mod_id = "mod9")
+p3 <- plot_coef_nl(mod_norep, mod_id = "mod10")
+p4 <- plot_coef_nl(mod_norep, mod_id = "mod11")
+p5 <- plot_coef_nl(mod_norep, mod_id = "mod12")
+p6 <- plot_coef_nl(mod_norep, mod_id = "mod13")
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+Replicated spatial RE
+
+```{r, fig.width=8, fig.height=4}
+p1 <- plot_coef_nl(mod_rep, mod_id = "mod8")
+p2 <- plot_coef_nl(mod_rep, mod_id = "mod9")
+p3 <- plot_coef_nl(mod_rep, mod_id = "mod10")
+p4 <- plot_coef_nl(mod_rep, mod_id = "mod11")
+p5 <- plot_coef_nl(mod_rep, mod_id = "mod12")
+p6 <- plot_coef_nl(mod_rep, mod_id = "mod13")
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+## ENSO non-linear (quantile)
+
+Non-replicated spatial RE
+
+```{r, fig.width=8, fig.height=4}
+p1 <- plot_coef_nl(mod_norep, mod_id = "mod14")
+p2 <- plot_coef_nl(mod_norep, mod_id = "mod15")
+p3 <- plot_coef_nl(mod_norep, mod_id = "mod16")
+p4 <- plot_coef_nl(mod_norep, mod_id = "mod17")
+p5 <- plot_coef_nl(mod_norep, mod_id = "mod18")
+p6 <- plot_coef_nl(mod_norep, mod_id = "mod19")
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
+
+Replicated spatial RE
+
+```{r, fig.width=8, fig.height=4}
+p1 <- plot_coef_nl(mod_rep, mod_id = "mod14")
+p2 <- plot_coef_nl(mod_rep, mod_id = "mod15")
+p3 <- plot_coef_nl(mod_rep, mod_id = "mod16")
+p4 <- plot_coef_nl(mod_rep, mod_id = "mod17")
+p5 <- plot_coef_nl(mod_rep, mod_id = "mod18")
+p6 <- plot_coef_nl(mod_rep, mod_id = "mod19")
+cowplot::plot_grid(p1, p2, p3, p4, p5, p6, nrow = 2)
+```
