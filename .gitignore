@@ -4,5 +4,4 @@ output/
 *.err
 *.out
 nimble
-*.png
 .Rhistory
