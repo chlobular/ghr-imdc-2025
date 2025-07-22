@@ -93,7 +93,10 @@ plot_coef_varying(mod, mod_id = "mod3", name = "koppen_id8",
 
 ### Replicated by region
 
-Model did not converge
+```{r, fig.width=5, fig.height=3}
+plot_coef_varying(mod, mod_id = "mod4", name = "region_id")
+```
+
 
 ### Replicated by biome
 
