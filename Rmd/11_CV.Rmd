@@ -35,17 +35,19 @@ summarize_cv <- function(mod_path, id_lab){
 ```
 
 ```{r}
-# stats1 <- summarize_cv("output/CV/mod1_cv.rds", "mod1")
+stats1 <- summarize_cv("output/CV/mod1_cv.rds", "mod1")
 stats2 <- summarize_cv("output/CV/mod2_cv.rds", "mod2")
 stats3 <- summarize_cv("output/CV/mod3_cv.rds", "mod3")
+stats3.lsl <- summarize_cv("output/CV/mod3.lsl_cv.rds", "mod3.lsl")
 stats4 <- summarize_cv("output/CV/mod4_cv.rds", "mod4")
 stats5 <- summarize_cv("output/CV/mod5_cv.rds", "mod5")
 stats6 <- summarize_cv("output/CV/mod6_cv.rds", "mod6")
 stats7 <- summarize_cv("output/CV/mod7_cv.rds", "mod7")
 stats8 <- summarize_cv("output/CV/mod8_cv.rds", "mod8")
 stats9 <- summarize_cv("output/CV/mod9_cv.rds", "mod9")
-stats_all <- rbind(stats2, stats3, stats4, stats5, 
-                   stats6, stats7, stats8, stats9)
+stats_all <- rbind(stats1, stats2, stats3, stats3.lsl,
+                   stats4, stats5, stats6, 
+                   stats7, stats8, stats9)
 
 stats_all$label <- case_when(
   stats_all$model == "mod1" ~ "NY_NR",
