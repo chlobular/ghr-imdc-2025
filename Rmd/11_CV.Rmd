@@ -1,0 +1,116 @@
+---
+title: "CV analysis"
+author: "Carles Milà"
+date: "2025-07-21"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("dplyr")
+```
+
+# Table of models
+
+<div style="text-align: center;">
+<img src="/home/cmilagar/Documents/sprint2025/figures/CV_modtab.png" width="70%" />
+</div>
+
+```{r}
+summarize_cv <- function(mod_path, id_lab){
+  mod <- readRDS(mod_path)
+  res <- data.frame(model = id_lab, season = 2020:2024)
+  res$crps <- sapply(mod, function(x) unlist(x$crps$edf_crps_summary$mean))
+  res$mae <- sapply(mod, function(x) unlist(x$mae$mae))
+  res$rmse <- sapply(mod, function(x) unlist(x$rmse$rmse))
+  res
+}
+```
+
+```{r}
+# stats1 <- summarize_cv("output/CV/mod1_cv.rds", "mod1")
+stats2 <- summarize_cv("output/CV/mod2_cv.rds", "mod2")
+stats3 <- summarize_cv("output/CV/mod3_cv.rds", "mod3")
+stats4 <- summarize_cv("output/CV/mod4_cv.rds", "mod4")
+stats5 <- summarize_cv("output/CV/mod5_cv.rds", "mod5")
+stats6 <- summarize_cv("output/CV/mod6_cv.rds", "mod6")
+stats7 <- summarize_cv("output/CV/mod7_cv.rds", "mod7")
+stats8 <- summarize_cv("output/CV/mod8_cv.rds", "mod8")
+stats9 <- summarize_cv("output/CV/mod9_cv.rds", "mod9")
+stats_all <- rbind(stats2, stats3, stats4, stats5, 
+                   stats6, stats7, stats8, stats9)
+
+stats_all$label <- case_when(
+  stats_all$model == "mod1" ~ "NY_NR",
+  stats_all$model == "mod1.lsl" ~ "NY_NR_LSL",
+  stats_all$model == "mod2" ~ "NY",
+  stats_all$model == "mod2.lsl" ~ "NY_LSL",
+  stats_all$model == "mod3" ~ "f_IID_NR",
+  stats_all$model == "mod3.lsl" ~ "f_IID_NR_LSL",
+  stats_all$model == "mod4" ~ "f_IID",
+  stats_all$model == "mod4.lsl" ~ "f_IID_LSL",
+  stats_all$model == "mod5" ~ "f_IIDr",
+  stats_all$model == "mod5.lsl" ~ "f_IIDr_LSL",
+  stats_all$model == "mod6" ~ "f_RW1",
+  stats_all$model == "mod6.lsl" ~ "f_RW1_LSL",
+  stats_all$model == "mod7" ~ "f_RW1r",
+  stats_all$model == "mod7.lsl" ~ "f_RW1r_LSL",
+  stats_all$model == "mod8" ~ "f_RW2",
+  stats_all$model == "mod8.lsl" ~ "f_RW2_LSL",
+  stats_all$model == "mod9" ~ "f_RW2r",
+  stats_all$model == "mod9.lsl" ~ "f_RW2r_LSL"
+)
+```
+
+# CRPS
+
+```{r}
+stats_crps <- stats_all[c("model", "label", "season", "crps")]
+stats_crps <- tidyr::pivot_wider(stats_crps, 
+                                 names_from = "season",
+                                 names_prefix = "s",
+                                 values_from = "crps")
+stats_crps$mean <- apply(stats_crps[3:7], 1, mean)
+stats_crps$sd  <- apply(stats_crps[3:7], 1, sd)
+stats_crps[sapply(stats_crps, is.numeric)] <- 
+  lapply(stats_crps[sapply(stats_crps, is.numeric)], round, digits = 2)
+DT::datatable(stats_crps)
+```
+
+
+# MAE
+
+```{r}
+stats_mae <- stats_all[c("model", "label", "season", "mae")]
+stats_mae <- tidyr::pivot_wider(stats_mae, 
+                                names_from = "season",
+                                values_from = "mae")
+stats_mae$mean <- apply(stats_mae[3:7], 1, mean)
+stats_mae$sd  <- apply(stats_mae[3:7], 1, sd)
+stats_mae[sapply(stats_mae, is.numeric)] <- 
+  lapply(stats_mae[sapply(stats_mae, is.numeric)], round, digits = 2)
+DT::datatable(stats_mae)
+```
+
+
+# RMSE
+
+```{r}
+stats_rmse <- stats_all[c("model", "label", "season", "rmse")]
+stats_rmse <- tidyr::pivot_wider(stats_rmse, 
+                                 names_from = "season",
+                                 values_from = "rmse")
+stats_rmse$mean <- apply(stats_rmse[3:7], 1, mean)
+stats_rmse$sd  <- apply(stats_rmse[3:7], 1,sd)
+stats_rmse[sapply(stats_rmse, is.numeric)] <- 
+  lapply(stats_rmse[sapply(stats_rmse, is.numeric)], round, digits = 2)
+DT::datatable(stats_rmse)
+```
+
