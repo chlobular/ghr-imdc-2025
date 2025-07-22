@@ -1,0 +1,344 @@
+---
+title: "Trend models"
+author: "Carles Milà"
+date: "2025-07-21"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("GHRmodel")
+library("dplyr")
+library("sf")
+library("ggplot2")
+library("cowplot")
+
+data <- read.csv("data/processed/weekly_data.csv")
+koppen_labs <- levels(as.factor(data$koppen))
+names(koppen_labs) <- 1:length(koppen_labs)
+biome_labs <- levels(as.factor(data$biome))
+names(biome_labs) <- 1:length(biome_labs)
+mod <- readRDS("output/trend_fe/trend_mod.rds")
+```
+
+```{r modtab}
+modtab <- read.csv("output/trend_fe/modtab.csv") |> 
+  mutate(ID = paste0("mod", 1:n())) |> 
+  select(ID, Models, Replication)
+# knitr::kable(modtab)
+```
+
+# GOF
+
+Baseline model: LSL with weekly (repl. state), spatial (repl. ENSO) and yearly (iid) random effects.
+
+```{r gof, fig.width=9, fig.height=6}
+modgof <- read.csv("output/trend_fe/trend_gof.csv") |> 
+  mutate(Models = modtab$Models, Replication = modtab$Replication)
+
+# DIC
+p1 <- ggplot(modgof, aes(x = Models, y = dic, col = Replication)) +
+  geom_hline(yintercept = modgof$dic[modgof$Models == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# WAIC
+p2 <- ggplot(modgof, aes(x = Models, y = waic, col = Replication)) +
+  geom_hline(yintercept = modgof$waic[modgof$Models == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# LMS
+p3 <- ggplot(modgof, aes(x = Models, y = lms, col = Replication)) +
+  geom_hline(yintercept = modgof$lms[modgof$Models == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+# MAE
+p4 <- ggplot(modgof, aes(x = Models, y = mae, col = Replication)) +
+  geom_hline(yintercept = modgof$mae[modgof$Models == "Baseline"],
+             col = "grey40", alpha = 0.4) +
+  geom_point() +
+  theme_bw()
+
+plot_grid(p1, p2, p3, p4, nrow = 2)
+```
+
+# Effects
+
+## Linear 
+
+### Non-replicated
+
+```{r, fig.width=5, fig.height=2}
+plot_coef_lin(mod, mod_id = "mod2")
+```
+
+### Replicated by Koppen 
+
+```{r, fig.width=5, fig.height=3}
+plot_coef_varying(mod, mod_id = "mod3", name = "koppen_id8",
+                  unit_label = koppen_labs)
+```
+
+### Replicated by region
+
+Model did not converge
+
+### Replicated by biome
+
+```{r, fig.width=5, fig.height=3}
+plot_coef_varying(mod, mod_id = "mod5", name = "biome_id",
+                  unit_label = biome_labs)
+```
+
+## NS2
+
+```{r}
+library("splines")
+x_grid <- min(data$time_id):max(data$time_id)
+X_grid <- ns(x_grid, df = 2)
+```
+
+### Non-replicated
+
+```{r, fig.width=6, fig.height=3}
+coefs_m <- mod$fixed$mod6[c("ns2_1", "ns2_2"), "mean"]
+coefs_l <- mod$fixed$mod6[c("ns2_1", "ns2_2"), "0.025quant"]
+coefs_u <- mod$fixed$mod6[c("ns2_1", "ns2_2"), "0.975quant"]
+df_plot <- data.frame(x = x_grid, 
+                      mean = as.vector(X_grid %*% coefs_m),
+                      lower = as.vector(X_grid %*% coefs_l),
+                      upper = as.vector(X_grid %*% coefs_u))
+ggplot(df_plot) +
+  geom_line(aes(x, mean)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper), fill = "grey", alpha = 0.4) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS2") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by koppen
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod7$koppen_id8$mean
+coefs_l1 <- mod$random$mod7$koppen_id8$`0.025quant`
+coefs_u1 <- mod$random$mod7$koppen_id8$`0.975quant`
+coefs_m2 <- mod$random$mod7$koppen_id9$mean
+coefs_l2 <- mod$random$mod7$koppen_id9$`0.025quant`
+coefs_u2 <- mod$random$mod7$koppen_id9$`0.975quant`
+koppen <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(koppen), function(i) {
+  tibble(
+    x = x_grid,
+    koppen = koppen[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i],
+  )
+}) %>% bind_rows()
+
+plot_data$koppen <- koppen_labs[plot_data$koppen]
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = koppen)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = koppen), alpha = 0.4) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS2") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by region
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod8$region_id$mean
+coefs_l1 <- mod$random$mod8$region_id$`0.025quant`
+coefs_u1 <- mod$random$mod8$region_id$`0.975quant`
+coefs_m2 <- mod$random$mod8$region_id2$mean
+coefs_l2 <- mod$random$mod8$region_id2$`0.025quant`
+coefs_u2 <- mod$random$mod8$region_id2$`0.975quant`
+region <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(region), function(i) {
+  tibble(
+    x = x_grid,
+    region = region[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i],
+  )
+}) %>% bind_rows()
+
+plot_data$region <- as.factor(plot_data$region)
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = region)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = region), alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS2") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by biome
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod9$biome_id$mean
+coefs_l1 <- mod$random$mod9$biome_id$`0.025quant`
+coefs_u1 <- mod$random$mod9$biome_id$`0.975quant`
+coefs_m2 <- mod$random$mod9$biome_id2$mean
+coefs_l2 <- mod$random$mod9$biome_id2$`0.025quant`
+coefs_u2 <- mod$random$mod9$biome_id2$`0.975quant`
+biome <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(biome), function(i) {
+  tibble(
+    x = x_grid,
+    biome = biome[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i],
+  )
+}) %>% bind_rows()
+
+plot_data$biome <- biome_labs[plot_data$biome]
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = biome)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = biome), alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS2") + xlab("time_id") +
+  theme_bw()
+```
+
+## NS3
+
+```{r, fig.width=6, fig.height=3}
+library("splines")
+x_grid <- min(data$time_id):max(data$time_id)
+X_grid <- ns(x_grid, df = 3)
+```
+
+### Non-replicated
+
+```{r, fig.width=6, fig.height=3}
+coefs_m <- mod$fixed$mod10[c("ns3_1", "ns3_2", "ns3_3"), "mean"]
+coefs_l <- mod$fixed$mod10[c("ns3_1", "ns3_2", "ns3_3"), "0.025quant"]
+coefs_u <- mod$fixed$mod10[c("ns3_1", "ns3_2", "ns3_3"), "0.975quant"]
+df_plot <- data.frame(x = x_grid, 
+                      mean = as.vector(X_grid %*% coefs_m),
+                      lower = as.vector(X_grid %*% coefs_l),
+                      upper = as.vector(X_grid %*% coefs_u))
+ggplot(df_plot) +
+  geom_line(aes(x, mean)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper), fill = "grey", alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS3") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by koppen
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod11$koppen_id8$mean
+coefs_l1 <- mod$random$mod11$koppen_id8$`0.025quant`
+coefs_u1 <- mod$random$mod11$koppen_id8$`0.975quant`
+coefs_m2 <- mod$random$mod11$koppen_id9$mean
+coefs_l2 <- mod$random$mod11$koppen_id9$`0.025quant`
+coefs_u2 <- mod$random$mod11$koppen_id9$`0.975quant`
+coefs_m3 <- mod$random$mod11$koppen_id10$mean
+coefs_l3 <- mod$random$mod11$koppen_id10$`0.025quant`
+coefs_u3 <- mod$random$mod11$koppen_id10$`0.975quant`
+koppen <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(koppen), function(i) {
+  tibble(
+    x = x_grid,
+    koppen = koppen[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i]+ X_grid[,3] * coefs_m3[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i]+ X_grid[,3] * coefs_m3[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i]+ X_grid[,3] * coefs_m3[i],
+  )
+}) %>% bind_rows()
+
+plot_data$koppen <- koppen_labs[plot_data$koppen]
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = koppen)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = koppen), alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS3") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by region
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod12$region_id$mean
+coefs_l1 <- mod$random$mod12$region_id$`0.025quant`
+coefs_u1 <- mod$random$mod12$region_id$`0.975quant`
+coefs_m2 <- mod$random$mod12$region_id2$mean
+coefs_l2 <- mod$random$mod12$region_id2$`0.025quant`
+coefs_u2 <- mod$random$mod12$region_id2$`0.975quant`
+coefs_m3 <- mod$random$mod12$region_id3$mean
+coefs_l3 <- mod$random$mod12$region_id3$`0.025quant`
+coefs_u3 <- mod$random$mod12$region_id3$`0.975quant`
+region <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(region), function(i) {
+  tibble(
+    x = x_grid,
+    region = region[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i]+ X_grid[,3] * coefs_m3[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i]+ X_grid[,3] * coefs_m3[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i]+ X_grid[,3] * coefs_m3[i],
+  )
+}) %>% bind_rows()
+
+plot_data$region <- as.factor(plot_data$region)
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = region)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = region), alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS3") + xlab("time_id") +
+  theme_bw()
+```
+
+### Replicated by biome
+
+```{r, fig.width=7, fig.height=3}
+coefs_m1 <- mod$random$mod13$biome_id$mean
+coefs_l1 <- mod$random$mod13$biome_id$`0.025quant`
+coefs_u1 <- mod$random$mod13$biome_id$`0.975quant`
+coefs_m2 <- mod$random$mod13$biome_id2$mean
+coefs_l2 <- mod$random$mod13$biome_id2$`0.025quant`
+coefs_u2 <- mod$random$mod13$biome_id2$`0.975quant`
+coefs_m3 <- mod$random$mod13$biome_id3$mean
+coefs_l3 <- mod$random$mod13$biome_id3$`0.025quant`
+coefs_u3 <- mod$random$mod13$biome_id3$`0.975quant`
+biome <- 1:length(coefs_m1)
+
+plot_data <- lapply(seq_along(biome), function(i) {
+  tibble(
+    x = x_grid,
+    biome = biome[i],
+    mean = X_grid[,1] * coefs_m1[i] + X_grid[,2] * coefs_m2[i]+ X_grid[,3] * coefs_m3[i],
+    lower = X_grid[,1] * coefs_l1[i] + X_grid[,2] * coefs_l2[i]+ X_grid[,3] * coefs_m3[i],
+    upper = X_grid[,1] * coefs_u1[i] + X_grid[,2] * coefs_u2[i]+ X_grid[,3] * coefs_m3[i],
+  )
+}) %>% bind_rows()
+
+plot_data$biome <- biome_labs[plot_data$biome]
+ggplot(plot_data) +
+  geom_line(aes(x, mean, col = biome)) + 
+  geom_ribbon(aes(x= x, ymin = lower, ymax = upper, fill = biome), alpha = 0.3) +
+  geom_hline(yintercept = 0, lty = 2, col = "grey") +
+  ylab("NS3") + xlab("time_id") +
+  theme_bw()
+```
