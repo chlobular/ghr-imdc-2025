@@ -1,5 +1,5 @@
 ---
-title: "CV analysis"
+title: "CV analysis (2nd round)"
 author: "Carles Milà"
 date: "2025-07-21"
 output:
@@ -20,7 +20,7 @@ library("dplyr")
 # Table of models
 
 <div style="text-align: center;">
-<img src="/home/cmilagar/Documents/sprint2025/figures/CV_modtab.png" width="70%" />
+<img src="/home/cmilagar/Documents/sprint2025/figures/CV_modtab2.png" width="70%" />
 </div>
 
 ```{r}
@@ -37,47 +37,25 @@ summarize_cv <- function(mod_path, id_lab){
 ```{r}
 stats1 <- summarize_cv("output/CV/mod1_cv.rds", "mod1")
 stats1.lsl <- summarize_cv("output/CV/mod1.lsl_cv.rds", "mod1.lsl")
-stats2 <- summarize_cv("output/CV/mod2_cv.rds", "mod2")
-stats2.lsl <- summarize_cv("output/CV/mod2.lsl_cv.rds", "mod2.lsl")
 stats3 <- summarize_cv("output/CV/mod3_cv.rds", "mod3")
 stats3.lsl <- summarize_cv("output/CV/mod3.lsl_cv.rds", "mod3.lsl")
-stats4 <- summarize_cv("output/CV/mod4_cv.rds", "mod4")
-stats4.lsl <- summarize_cv("output/CV/mod4.lsl_cv.rds", "mod4.lsl")
-stats5 <- summarize_cv("output/CV/mod5_cv.rds", "mod5")
-stats5.lsl <- summarize_cv("output/CV/mod5.lsl_cv.rds", "mod5.lsl")
-stats6 <- summarize_cv("output/CV/mod6_cv.rds", "mod6")
-stats6.lsl <- summarize_cv("output/CV/mod6.lsl_cv.rds", "mod6.lsl")
-stats7 <- summarize_cv("output/CV/mod7_cv.rds", "mod7")
-stats7.lsl <- summarize_cv("output/CV/mod7.lsl_cv.rds", "mod7.lsl")
-stats8 <- summarize_cv("output/CV/mod8_cv.rds", "mod8")
-stats8.lsl <- summarize_cv("output/CV/mod8.lsl_cv.rds", "mod8.lsl")
-stats9 <- summarize_cv("output/CV/mod9_cv.rds", "mod9")
-stats9.lsl <- summarize_cv("output/CV/mod9.lsl_cv.rds", "mod9.lsl")
-stats_all <- rbind(stats1, stats1.lsl, stats2, stats2.lsl,
-                   stats3, stats3.lsl, stats4, stats4.lsl,
-                   stats5, stats5.lsl, stats6, stats6.lsl,
-                   stats7, stats7.lsl, stats8, stats8.lsl,
-                   stats9, stats9.lsl)
+stats10 <- summarize_cv("output/CV2/mod10_cv.rds", "mod10")
+stats11 <- summarize_cv("output/CV2/mod11_cv.rds", "mod11")
+stats12 <- summarize_cv("output/CV2/mod12_cv.rds", "mod12")
+stats13 <- summarize_cv("output/CV2/mod13_cv.rds", "mod13")
+
+stats_all <- rbind(stats1, stats1.lsl, stats3, stats3.lsl,
+                   stats10, stats11, stats12, stats13)
 
 stats_all$label <- case_when(
-  stats_all$model == "mod1" ~ "NY_NR",
-  stats_all$model == "mod1.lsl" ~ "NY_NR_LSL",
-  stats_all$model == "mod2" ~ "NY",
-  stats_all$model == "mod2.lsl" ~ "NY_LSL",
-  stats_all$model == "mod3" ~ "f_IID_NR",
-  stats_all$model == "mod3.lsl" ~ "f_IID_NR_LSL",
-  stats_all$model == "mod4" ~ "f_IID",
-  stats_all$model == "mod4.lsl" ~ "f_IID_LSL",
-  stats_all$model == "mod5" ~ "f_IIDr",
-  stats_all$model == "mod5.lsl" ~ "f_IIDr_LSL",
-  stats_all$model == "mod6" ~ "f_RW1",
-  stats_all$model == "mod6.lsl" ~ "f_RW1_LSL",
-  stats_all$model == "mod7" ~ "f_RW1r",
-  stats_all$model == "mod7.lsl" ~ "f_RW1r_LSL",
-  stats_all$model == "mod8" ~ "f_RW2",
-  stats_all$model == "mod8.lsl" ~ "f_RW2_LSL",
-  stats_all$model == "mod9" ~ "f_RW2r",
-  stats_all$model == "mod9.lsl" ~ "f_RW2r_LSL"
+  stats_all$model == "mod1" ~ "Baseline",
+  stats_all$model == "mod1.lsl" ~ "LSL",
+  stats_all$model == "mod3" ~ "Baselineiid",
+  stats_all$model == "mod3.lsl" ~ "LSLiid",
+  stats_all$model == "mod10" ~ "LSL_tas",
+  stats_all$model == "mod11" ~ "LSL_oni",
+  stats_all$model == "mod12" ~ "LSL_trend",
+  stats_all$model == "mod13" ~ "LSL_region"
 )
 ```
 
@@ -114,7 +92,6 @@ stats_mae[sapply(stats_mae, is.numeric)] <-
 DT::datatable(stats_mae)
 ```
 
-
 # RMSE
 
 ```{r}
@@ -130,4 +107,3 @@ stats_rmse[sapply(stats_rmse, is.numeric)] <-
   lapply(stats_rmse[sapply(stats_rmse, is.numeric)], round, digits = 2)
 DT::datatable(stats_rmse)
 ```
-
