@@ -36,18 +36,28 @@ summarize_cv <- function(mod_path, id_lab){
 
 ```{r}
 stats1 <- summarize_cv("output/CV/mod1_cv.rds", "mod1")
+stats1.lsl <- summarize_cv("output/CV/mod1.lsl_cv.rds", "mod1.lsl")
 stats2 <- summarize_cv("output/CV/mod2_cv.rds", "mod2")
+stats2.lsl <- summarize_cv("output/CV/mod2_cv.rds", "mod2.lsl")
 stats3 <- summarize_cv("output/CV/mod3_cv.rds", "mod3")
 stats3.lsl <- summarize_cv("output/CV/mod3.lsl_cv.rds", "mod3.lsl")
 stats4 <- summarize_cv("output/CV/mod4_cv.rds", "mod4")
+stats4.lsl <- summarize_cv("output/CV/mod4_cv.rds", "mod4.lsl")
 stats5 <- summarize_cv("output/CV/mod5_cv.rds", "mod5")
+stats5.lsl <- summarize_cv("output/CV/mod5_cv.rds", "mod5.lsl")
 stats6 <- summarize_cv("output/CV/mod6_cv.rds", "mod6")
+stats6.lsl <- summarize_cv("output/CV/mod6_cv.rds", "mod6.lsl")
 stats7 <- summarize_cv("output/CV/mod7_cv.rds", "mod7")
+stats7.lsl <- summarize_cv("output/CV/mod7_cv.rds", "mod7.lsl")
 stats8 <- summarize_cv("output/CV/mod8_cv.rds", "mod8")
+stats8.lsl <- summarize_cv("output/CV/mod8_cv.rds", "mod8.lsl")
 stats9 <- summarize_cv("output/CV/mod9_cv.rds", "mod9")
-stats_all <- rbind(stats1, stats2, stats3, stats3.lsl,
-                   stats4, stats5, stats6, 
-                   stats7, stats8, stats9)
+stats9.lsl <- summarize_cv("output/CV/mod9_cv.rds", "mod9.lsl")
+stats_all <- rbind(stats1, stats1.lsl, stats2, stats2.lsl,
+                   stats3, stats3.lsl, stats4, stats4.lsl,
+                   stats5, stats5.lsl, stats6, stats6.lsl,
+                   stats7, stats7.lsl, stats8, stats8.lsl,
+                   stats9, stats9.lsl)
 
 stats_all$label <- case_when(
   stats_all$model == "mod1" ~ "NY_NR",
@@ -79,8 +89,10 @@ stats_crps <- tidyr::pivot_wider(stats_crps,
                                  names_from = "season",
                                  names_prefix = "s",
                                  values_from = "crps")
-stats_crps$mean <- apply(stats_crps[3:7], 1, mean)
-stats_crps$sd  <- apply(stats_crps[3:7], 1, sd)
+stats_crps$mean3 <- apply(stats_crps[5:7], 1, mean)
+stats_crps$sd3  <- apply(stats_crps[5:7], 1, sd)
+stats_crps$mean5 <- apply(stats_crps[3:7], 1, mean)
+stats_crps$sd5  <- apply(stats_crps[3:7], 1, sd)
 stats_crps[sapply(stats_crps, is.numeric)] <- 
   lapply(stats_crps[sapply(stats_crps, is.numeric)], round, digits = 2)
 DT::datatable(stats_crps)
@@ -94,8 +106,10 @@ stats_mae <- stats_all[c("model", "label", "season", "mae")]
 stats_mae <- tidyr::pivot_wider(stats_mae, 
                                 names_from = "season",
                                 values_from = "mae")
-stats_mae$mean <- apply(stats_mae[3:7], 1, mean)
-stats_mae$sd  <- apply(stats_mae[3:7], 1, sd)
+stats_mae$mean3 <- apply(stats_mae[5:7], 1, mean)
+stats_mae$sd3  <- apply(stats_mae[5:7], 1, sd)
+stats_mae$mean5 <- apply(stats_mae[3:7], 1, mean)
+stats_mae$sd5  <- apply(stats_mae[3:7], 1, sd)
 stats_mae[sapply(stats_mae, is.numeric)] <- 
   lapply(stats_mae[sapply(stats_mae, is.numeric)], round, digits = 2)
 DT::datatable(stats_mae)
@@ -109,8 +123,10 @@ stats_rmse <- stats_all[c("model", "label", "season", "rmse")]
 stats_rmse <- tidyr::pivot_wider(stats_rmse, 
                                  names_from = "season",
                                  values_from = "rmse")
-stats_rmse$mean <- apply(stats_rmse[3:7], 1, mean)
-stats_rmse$sd  <- apply(stats_rmse[3:7], 1,sd)
+stats_rmse$mean3 <- apply(stats_rmse[5:7], 1, mean)
+stats_rmse$sd3  <- apply(stats_rmse[5:7], 1, sd)
+stats_rmse$mean5 <- apply(stats_rmse[3:7], 1, mean)
+stats_rmse$sd5  <- apply(stats_rmse[3:7], 1, sd)
 stats_rmse[sapply(stats_rmse, is.numeric)] <- 
   lapply(stats_rmse[sapply(stats_rmse, is.numeric)], round, digits = 2)
 DT::datatable(stats_rmse)
