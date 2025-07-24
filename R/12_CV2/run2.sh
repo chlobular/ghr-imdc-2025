@@ -3,7 +3,7 @@
 #SBATCH --output=CV2_%j.out
 #SBATCH --error=CV2_%j.err
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=90
+#SBATCH --cpus-per-task=100
 #SBATCH --qos=gp_bsces
 #SBATCH --account=bsc32
 #SBATCH --mail-type=all

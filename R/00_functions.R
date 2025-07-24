@@ -86,6 +86,8 @@ sprint_mod <- function(formulas,
       control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
     res_list[[1]] <- stats_01
     rm("data01", "limit01", "mod_01", "stats_01")
+    gc()
+    INLA:::inla.models.clear()
     
     # Validation 02
     print("Validation 02")
@@ -106,6 +108,8 @@ sprint_mod <- function(formulas,
       control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
     res_list[[2]] <- stats_02
     rm("data02", "limit02", "mod_02", "stats_02")
+    gc()
+    INLA:::inla.models.clear()
     
     # Validation 03
     print("Validation 03")
@@ -126,6 +130,8 @@ sprint_mod <- function(formulas,
       control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
     res_list[[3]] <- stats_03
     rm("data03", "limit03", "mod_03", "stats_03")
+    gc()
+    INLA:::inla.models.clear()
     
     # Validation 04
     print("Validation 04")
@@ -146,6 +152,8 @@ sprint_mod <- function(formulas,
       control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
     res_list[[4]] <- stats_04
     rm("data04", "limit04", "mod_04", "stats_04")
+    gc()
+    INLA:::inla.models.clear()
     
     # Validation 05
     print("Validation 05")
@@ -166,6 +174,8 @@ sprint_mod <- function(formulas,
       control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
     res_list[[5]] <- stats_05
     rm("data05", "limit05", "mod_05", "stats_05")
+    gc()
+    INLA:::inla.models.clear()
     
     # Write
     saveRDS(res_list, paste0(path, "/", filename, "_cv.rds"))
