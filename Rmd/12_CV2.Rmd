@@ -43,9 +43,16 @@ stats10 <- summarize_cv("output/CV2/mod10_cv.rds", "mod10")
 stats11 <- summarize_cv("output/CV2/mod11_cv.rds", "mod11")
 stats12 <- summarize_cv("output/CV2/mod12_cv.rds", "mod12")
 stats13 <- summarize_cv("output/CV2/mod13_cv.rds", "mod13")
+stats14 <- summarize_cv("output/CV2/mod14_cv.rds", "mod14")
+stats15 <- summarize_cv("output/CV2/mod15_cv.rds", "mod15")
+stats17 <- summarize_cv("output/CV2/mod17_cv.rds", "mod17")
+stats18 <- summarize_cv("output/CV2/mod18_cv.rds", "mod18")
+stats20 <- summarize_cv("output/CV2/mod20_cv.rds", "mod20")
 
 stats_all <- rbind(stats1, stats1.lsl, stats3, stats3.lsl,
-                   stats10, stats11, stats12, stats13)
+                   stats10, stats11, stats12, stats13,
+                   stats14, stats15, stats17, stats18,
+                   stats20)
 
 stats_all$label <- case_when(
   stats_all$model == "mod1" ~ "Baseline",
@@ -53,9 +60,16 @@ stats_all$label <- case_when(
   stats_all$model == "mod3" ~ "Baselineiid",
   stats_all$model == "mod3.lsl" ~ "LSLiid",
   stats_all$model == "mod10" ~ "LSL_tas",
-  stats_all$model == "mod11" ~ "LSL_oni",
+  stats_all$model == "mod11" ~ "LSL_oni2",
   stats_all$model == "mod12" ~ "LSL_trend",
-  stats_all$model == "mod13" ~ "LSL_region"
+  stats_all$model == "mod13" ~ "LSL_region",
+  stats_all$model == "mod14" ~ "LSLiid_tas", 
+  stats_all$model == "mod15" ~ "LSLiid_oni2", 
+  stats_all$model == "mod17" ~ "LSLiid_oni2rep", 
+  stats_all$model == "mod18" ~ "LSL_oni5nl", 
+  stats_all$model == "mod20" ~ "LSL_oni6nl"
+
+  
 )
 ```
 
