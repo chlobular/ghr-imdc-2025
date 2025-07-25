@@ -17,6 +17,12 @@ knitr::opts_chunk$set(echo = FALSE,
 library("dplyr")
 ```
 
+# Table of models
+
+<div style="text-align: center;">
+<img src="/home/cmilagar/Documents/sprint2025/figures/CV_modtab3.png" width="70%" />
+</div>
+
 # Global statistics
 
 ```{r}
@@ -36,7 +42,7 @@ label_mods <- function(x){
 crps <- data.frame()
 mae <- data.frame()
 rmse <- data.frame()
-for(m in c("mod22", "mod23", "mod24", "mod25")){
+for(m in c("mod1", "mod3", "mod22", "mod23", "mod24", "mod25")){
   
   crps_it <- data.frame(Model = m)
   crps_it$Label <- label_mods(m)
