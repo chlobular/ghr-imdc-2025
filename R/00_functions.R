@@ -270,3 +270,94 @@ write_FE_form <- function(FE, re_spatial = re_s, re_weekly = re_w, re_yearly = r
   })
   form
 }
+
+
+#' Prepare point predictions at the state level 
+#'
+#' @param sampath path were the ppd samples geneterated with GHRpredict.
+#' @param datadf data.frame with the whole data
+#' @param idperiod character variable in `datadf` that hold the partition 
+#' identifiers
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+predict_states <- function(sampath, datadf, idperiod){
+  
+  # Read ppd samples and check it corresponds to the df
+  dataperiod <- datadf[datadf[,idperiod] %in% c("Hold", "Test"),]
+  ppdsamp <- readRDS(sampath)[[1]][[1]]
+  if(nrow(ppdsamp) != nrow(dataperiod)){
+    stop("The ppd samples file and the data.frame do not match.")
+  }
+  
+  # Aggregate samples to state-date
+  aggr_id <- paste0(dataperiod$uf, "_", dataperiod$date)
+  test_id <- unique(dataperiod$date[dataperiod[idperiod]=="Test"])
+  casesaggr <- rowsum(dataperiod$casos, aggr_id)
+  ppdaggr <- rowsum(ppdsamp, aggr_id)
+
+  # Compute quantiles
+  quants <- apply(ppdaggr, 1, function(x) quantile(x, 
+                                                   probs = c(0.025, 0.05, 0.1, 0.25, 0.5, 
+                                                             0.75, 0.9, 0.95, 0.975)))
+  quants <- as.data.frame(t(quants))
+  names(quants) <- c("lower_95", "lower_90", "lower_80", "lower_50",
+                     "pred", "upper_50", "upper_80", "upper_90", "upper_95")
+  quants$ID <- row.names(quants)
+  rownames(quants) <- NULL
+  quants$uf <-  sapply(strsplit(quants$ID, "_"), `[`, 1)
+  quants$date <-  sapply(strsplit(quants$ID, "_"), `[`, 2)
+  quants$ID <- NULL
+  quants$cases <- casesaggr
+
+  # Keep test data only
+  quants <- quants[quants$date %in% test_id,]
+  
+  return(quants)
+}
+
+
+#' Prepare point predictions for the entire country
+#'
+#' @param sampath path were the ppd samples geneterated with GHRpredict.
+#' @param datadf data.frame with the whole data
+#' @param idperiod character variable in `datadf` that hold the partition 
+#' identifiers
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+predict_country <- function(sampath, datadf, idperiod){
+  
+  # Read ppd samples and check it corresponds to the df
+  dataperiod <- datadf[datadf[,idperiod] %in% c("Hold", "Test"),]
+  ppdsamp <- readRDS(sampath)[[1]][[1]]
+  if(nrow(ppdsamp) != nrow(dataperiod)){
+    stop("The ppd samples file and the data.frame do not match.")
+  }
+  
+  # Aggregate samples to state-date
+  aggr_id <- dataperiod$date
+  test_id <- unique(dataperiod$date[dataperiod[idperiod]=="Test"])
+  casesaggr <- rowsum(dataperiod$casos, aggr_id)
+  ppdaggr <- rowsum(ppdsamp, aggr_id)
+  
+  # Compute quantiles
+  quants <- apply(ppdaggr, 1, function(x) quantile(x, 
+                                                   probs = c(0.025, 0.05, 0.1, 0.25, 0.5, 
+                                                             0.75, 0.9, 0.95, 0.975)))
+  quants <- as.data.frame(t(quants))
+  names(quants) <- c("lower_95", "lower_90", "lower_80", "lower_50",
+                     "pred", "upper_50", "upper_80", "upper_90", "upper_95")
+  quants$date <- row.names(quants)
+  rownames(quants) <- NULL
+  quants$cases <- casesaggr
+  
+  # Keep test data only
+  quants <- quants[quants$date %in% test_id,]
+  
+  return(quants)
+}

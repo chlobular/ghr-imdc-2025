@@ -15,6 +15,11 @@ knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE)
 
 library("dplyr")
+library("ggplot2")
+library("forcats")
+library("geofacet")
+
+source("R/00_functions.R")
 ```
 
 # Table of models
@@ -92,4 +97,366 @@ DT::datatable(mae)
 
 ```{r}
 DT::datatable(rmse)
+```
+
+# Country-level predictions
+
+```{r, results='hide'}
+data <- read.csv("data/processed/weekly_data.csv") |> 
+  select(uf, regional_geocode, epiweek, date, hr_id, time_id, state_id, week_id,
+         year, epiyear, casos, pop, starts_with("dataset")) 
+
+preds_states <- data.frame()
+preds_country <- data.frame()
+for(m in c("mod1", "mod3", "mod22", "mod23", "mod24", "mod25")){
+  print(m)
+  for(y in as.character(2020:2024)){
+
+    path_it <- paste0("output/CV3/", m, "_", y, "_samples.rds")
+    id_id <- case_when(y == 2020 ~ "dataset_01",
+                       y == 2021 ~ "dataset_02",
+                       y == 2022 ~ "dataset_1",
+                       y == 2023 ~ "dataset_2",
+                       y == 2024 ~ "dataset_3")
+    states_it <- predict_states(path_it, data, id_id) 
+    country_it <- predict_country(path_it, data, id_id) 
+    
+    states_it$Year <- y; country_it$Year <- y
+    states_it$Model <- m; country_it$Model <- m
+    
+    preds_states <- rbind(preds_states, states_it)
+    preds_country <- rbind(preds_country, country_it)
+  }
+}
+```
+
+## Model comparison (median)
+
+```{r, fig.width=8, fig.height=6}
+preds_country$date <- as.Date(preds_country$date)
+preds_country$Model  <- fct_inorder(preds_country$Model)
+preds_country_cases <- preds_country[!duplicated(preds_country$date),]
+ggplot() +
+  geom_line(data = preds_country_cases,
+            aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(data = preds_country,
+            aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_wrap(~ Year, scales = "free") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") +
+  theme_bw()+
+  theme(legend.position = "bottom")
+```
+
+## Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=6}
+preds_best <- preds_country[preds_country$Model == "mod23",]
+ggplot() +
+  geom_line(data = preds_best,
+            aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(data = preds_best,
+            aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(data = preds_best,
+              aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(data = preds_best,
+              aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(data = preds_best,
+              aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(data = preds_best,
+              aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_wrap(~ Year, scales = "free") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+# State-level predictions
+
+## Season 2020
+
+### Model comparison
+
+```{r, fig.width=9, fig.height=8}
+preds_states$date <- as.Date(preds_states$date)
+preds_states$Model  <- fct_inorder(preds_states$Model)
+preds_states$uf <- as.character(preds_states$uf)
+preds_states_year <- preds_states[preds_states$Year == "2020",]
+
+ggplot(preds_states_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7))
+```
+
+### Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=8}
+preds_states_best <- preds_states[preds_states$Model == "mod23",]
+preds_states_best_year <- preds_states_best[preds_states_best$Year == "2020",]
+
+ggplot(preds_states_best_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom")
+```
+
+## Season 2021
+
+### Model comparison
+
+```{r, fig.width=9, fig.height=8}
+preds_states_year <- preds_states[preds_states$Year == "2021",]
+
+ggplot(preds_states_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")   +
+  theme(axis.text.x = element_text(size = 7))
+```
+
+### Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=8}
+preds_states_best <- preds_states[preds_states$Model == "mod23",]
+preds_states_best_year <- preds_states_best[preds_states_best$Year == "2021",]
+
+ggplot(preds_states_best_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom")
+```
+
+## Season 2022
+
+### Model comparison
+
+```{r, fig.width=9, fig.height=8}
+preds_states_year <- preds_states[preds_states$Year == "2022",]
+
+ggplot(preds_states_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")   +
+  theme(axis.text.x = element_text(size = 7))
+```
+
+### Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=8}
+preds_states_best <- preds_states[preds_states$Model == "mod23",]
+preds_states_best_year <- preds_states_best[preds_states_best$Year == "2022",]
+
+ggplot(preds_states_best_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom")
+```
+
+## Season 2023
+
+### Model comparison
+
+```{r, fig.width=9, fig.height=8}
+preds_states_year <- preds_states[preds_states$Year == "2023",]
+
+ggplot(preds_states_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")   +
+  theme(axis.text.x = element_text(size = 7))
+```
+
+### Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=8}
+preds_states_best <- preds_states[preds_states$Model == "mod23",]
+preds_states_best_year <- preds_states_best[preds_states_best$Year == "2023",]
+
+ggplot(preds_states_best_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom")
+```
+
+## Season 2024
+
+### Model comparison
+
+```{r, fig.width=9, fig.height=8}
+preds_states$date <- as.Date(preds_states$date)
+preds_states$Model  <- fct_inorder(preds_states$Model)
+preds_states$uf <- as.character(preds_states$uf)
+preds_states_year <- preds_states[preds_states$Year == "2024",]
+
+ggplot(preds_states_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = Model)) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "mod1" = "#E41A1C",
+                                "mod3" = "#377EB8",
+                                "mod22" = "#4DAF4A",
+                                "mod23" = "#984EA3",
+                                "mod24" = "#FF7F00",
+                                "mod25" = "#FFFF33")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")   +
+  theme(axis.text.x = element_text(size = 7))
+```
+
+### Model 23: Median and CI
+
+```{r, fig.width=8, fig.height=8}
+preds_states_best <- preds_states[preds_states$Model == "mod23",]
+preds_states_best_year <- preds_states_best[preds_states_best$Year == "2024",]
+
+ggplot(preds_states_best_year) +
+  geom_line(aes(x = date, y = cases, col = "Cases"),
+            lwd = 0.9) +
+  geom_line(aes(x = date, y = pred, col = "Prediction (50%, 80%, 90%, 95% CI)"),
+            lwd = 0.8) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, ), 
+              fill = "royalblue", alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90), 
+              fill = "royalblue", alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80), 
+              fill = "royalblue", alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50), 
+              fill = "royalblue", alpha = 0.4) +
+  scale_color_manual(values = c("Cases" = "grey20",
+                                "Prediction (50%, 80%, 90%, 95% CI)" = "royalblue")) +
+  labs(col = "") +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  theme_bw() + xlab("") + ylab("")  +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom")
 ```
