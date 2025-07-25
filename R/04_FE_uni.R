@@ -29,7 +29,7 @@ setwd("/gpfs/scratch/bsc32/bsc498895/sprint2025")
 
 # Read data
 data <- read.csv("data/processed/weekly_data.csv")
-# data <- data[data$year >= 2023,] # For debugging only
+# data <- data[data$year >= 2019,] # For debugging only
 
 
 # 1. Priors, graph, utils ----

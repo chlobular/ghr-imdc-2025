@@ -1,0 +1,89 @@
+---
+title: "13_CV3"
+author: "Carles Milà"
+date: "2025-07-25"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("dplyr")
+```
+
+# Global statistics
+
+```{r}
+# Label models
+label_mods <- function(x){
+  case_when(
+    x == "mod1" ~ "Baseline",
+    x == "mod3" ~ "Baselineiid",
+    x == "mod22" ~ "LSL_tas_oni2rep",
+    x == "mod23" ~ "LSL_tas_oni6nl",
+    x == "mod24" ~ "LSLiid_tas_oni2rep",
+    x == "mod25" ~ "LSLiid_tas_oni6nl"
+  )
+}
+
+# Fetch results
+crps <- data.frame()
+mae <- data.frame()
+rmse <- data.frame()
+for(m in c("mod22", "mod23", "mod24", "mod25")){
+  
+  crps_it <- data.frame(Model = m)
+  crps_it$Label <- label_mods(m)
+  mae_it <- data.frame(Model = m)
+  mae_it$Label <- label_mods(m)
+  rmse_it <- data.frame(Model = m)
+  rmse_it$Label <- label_mods(m)
+
+  for(y in as.character(2020:2024)){
+    mod_it <- readRDS(paste0("output/CV3/", m, "_", y, "_stats.rds"))
+    crps_it[y] <- mod_it$crps$edf_crps_summary$mean
+    mae_it[y] <- mod_it$mae$mae
+    rmse_it[y] <- mod_it$rmse$rmse
+  }
+  crps <- rbind(crps, crps_it)
+  mae <- rbind(mae, mae_it)
+  rmse <- rbind(rmse, rmse_it)
+}
+
+# Add statistics
+add_stats <- function(df){
+  df$mean3 <- apply(df[5:7], 1, mean)
+  df$sd3  <- apply(df[5:7], 1, sd)
+  df$mean5 <- apply(df[3:7], 1, mean)
+  df$sd5  <- apply(df[3:7], 1, sd)
+  df[sapply(df, is.numeric)] <- lapply(df[sapply(df, is.numeric)], round, digits = 2)
+  return(df)
+}
+crps <- add_stats(crps)
+mae <- add_stats(mae)
+rmse <- add_stats(rmse)
+```
+
+## CRPS
+
+```{r}
+DT::datatable(crps)
+```
+
+## MAE
+
+```{r}
+DT::datatable(mae)
+```
+
+## RMSE
+
+```{r}
+DT::datatable(rmse)
+```

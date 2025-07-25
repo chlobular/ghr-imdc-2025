@@ -37,7 +37,7 @@ sprint_mod <- function(formulas,
   # Convert to GHR formulas
   mod_names <- names(formulas)
   GHRformulas <- as_GHRformulas(paste0("casos ~ 1", formulas))
-
+  
   # Create a folder in the specified path with the name of interest
   if(length(formulas == 1) & isTRUE(create_dir)){
     path <- paste0(path, mod_names)
@@ -87,7 +87,6 @@ sprint_mod <- function(formulas,
     res_list[[1]] <- stats_01
     rm("data01", "limit01", "mod_01", "stats_01")
     gc()
-    INLA:::inla.models.clear()
     
     # Validation 02
     print("Validation 02")
@@ -109,7 +108,6 @@ sprint_mod <- function(formulas,
     res_list[[2]] <- stats_02
     rm("data02", "limit02", "mod_02", "stats_02")
     gc()
-    INLA:::inla.models.clear()
     
     # Validation 03
     print("Validation 03")
@@ -131,7 +129,6 @@ sprint_mod <- function(formulas,
     res_list[[3]] <- stats_03
     rm("data03", "limit03", "mod_03", "stats_03")
     gc()
-    INLA:::inla.models.clear()
     
     # Validation 04
     print("Validation 04")
@@ -153,7 +150,6 @@ sprint_mod <- function(formulas,
     res_list[[4]] <- stats_04
     rm("data04", "limit04", "mod_04", "stats_04")
     gc()
-    INLA:::inla.models.clear()
     
     # Validation 05
     print("Validation 05")
@@ -175,7 +171,6 @@ sprint_mod <- function(formulas,
     res_list[[5]] <- stats_05
     rm("data05", "limit05", "mod_05", "stats_05")
     gc()
-    INLA:::inla.models.clear()
     
     # Write
     saveRDS(res_list, paste0(path, "/", filename, "_cv.rds"))
@@ -183,6 +178,83 @@ sprint_mod <- function(formulas,
   
 }
 
+
+#' CV evaluation for model selection saving the samples and accuracy statistics
+#'
+#' @param formula INLA formula.
+#' @param data Data frame to fit the model to.
+#' @param path Path where the output of the function will be saved to.
+#' @param filename String specifying the model name when writing to disk.
+#' @param season Season to validate. 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+sprint_eval <- function(formulas, 
+                          data, 
+                          path,
+                          filename,
+                          season){
+  
+  # Convert to GHR formulas
+  GHRformulas <- as_GHRformulas(paste0("casos ~ 1", formulas))
+  
+  # pred utils
+  cntrl <-  list(threshold_method = "percentile", p = 0.75,                        
+                 threshold_floor = 5, direction = "full")
+  
+  # Data and limit
+  print(paste0("Season: ", season))
+  if(season == 2020){
+    
+    data_fit <- data[data$dataset_01!="Out",]
+    limit_fit <- max(data_fit[data_fit$dataset_01 == "Train", "date"])
+    
+  }else if(season == 2021){
+    
+    data_fit <- data[data$dataset_02!="Out",]
+    limit_fit <- max(data_fit[data_fit$dataset_02 == "Train", "date"])
+    
+  }else if(season == 2022){
+    
+    data_fit <- data[data$dataset_1!="Out",]
+    limit_fit <- max(data_fit[data_fit$dataset_1 == "Train", "date"])
+    
+  }else if(season == 2023){
+    
+    data_fit <- data[data$dataset_2!="Out",]
+    limit_fit <- max(data_fit[data_fit$dataset_2 == "Train", "date"])
+    
+  }else if(season == 2024){
+    
+    data_fit <- data[data$dataset_3!="Out",]
+    limit_fit <- max(data_fit[data_fit$dataset_3 == "Train", "date"])
+    
+  }
+  print(paste0("Limit: ", limit_fit))
+  
+  
+  # Fit
+  mod <- ghr_predict(formula = GHRformulas,
+                     data = data_fit,
+                     family = "nbinomial",
+                     offset = "pop",
+                     control_strategy = list(fixed_until = limit_fit),
+                     nsamples = 500)
+  saveRDS(mod, paste0(path, "/", filename, "_samples.rds"))
+  
+  # Stats
+  stats <- prediction_stats(
+    samples = mod,
+    data = data_fit,
+    temporal_unit = "week",
+    spatial_unit = "hr_id",
+    control_summary = cntrl, 
+    control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
+  saveRDS(stats, paste0(path, "/", filename, "_stats.rds"))
+  
+}
 
 
 write_FE_form <- function(FE, re_spatial = re_s, re_weekly = re_w, re_yearly = re_y){

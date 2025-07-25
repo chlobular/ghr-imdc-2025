@@ -45,6 +45,7 @@ stats12 <- summarize_cv("output/CV2/mod12_cv.rds", "mod12")
 stats13 <- summarize_cv("output/CV2/mod13_cv.rds", "mod13")
 stats14 <- summarize_cv("output/CV2/mod14_cv.rds", "mod14")
 stats15 <- summarize_cv("output/CV2/mod15_cv.rds", "mod15")
+stats16 <- summarize_cv("output/CV2/mod16_cv.rds", "mod16")
 stats17 <- summarize_cv("output/CV2/mod17_cv.rds", "mod17")
 stats18 <- summarize_cv("output/CV2/mod18_cv.rds", "mod18")
 stats20 <- summarize_cv("output/CV2/mod20_cv.rds", "mod20")
@@ -52,7 +53,7 @@ stats21 <- summarize_cv("output/CV2/mod21_cv.rds", "mod21")
 
 stats_all <- rbind(stats1, stats1.lsl, stats3, stats3.lsl,
                    stats10, stats11, stats12, stats13,
-                   stats14, stats15, stats17, stats18,
+                   stats14, stats15, stats16, stats17, stats18,
                    stats20, stats21)
 
 stats_all$label <- case_when(
