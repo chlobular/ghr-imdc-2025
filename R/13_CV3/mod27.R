@@ -52,7 +52,7 @@ data$v2v3 <- data$v2 * data$v3
 data$v1v2v3 <- data$v1 * data$v2 * data$v3
 
 # Spatial replicate index
-data$period_id <- ifelse(data$epiyear <= 2017, 1, 2)
+data$period_id <- ifelse(data$epiyear <= 2018, 1, 2)
 
 
 # 1. Priors, graph, utils ----

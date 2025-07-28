@@ -52,7 +52,7 @@ data$v2v3 <- data$v2 * data$v3
 data$v1v2v3 <- data$v1 * data$v2 * data$v3
 
 # Spatial replicate index
-data$period_id <- ifelse(data$epiyear <= 2017, 1, 2)
+data$period_id <- ifelse(data$epiyear <= 2018, 1, 2)
 
 
 # 1. Priors, graph, utils ----
@@ -93,8 +93,8 @@ fe_other <- paste(cov_varying("tas6.l1", "koppen_id8", ""),
 
 # 4. Fit ----
 (form_fit <- paste("", fe_lsl, fe_other, re_s, re_w, sep = " + "))
-# sprint_eval(form_fit, data, "output/CV3", "mod26_2020", 2020); gc()
-# sprint_eval(form_fit, data, "output/CV3", "mod26_2021", 2021); gc()
-# sprint_eval(form_fit, data, "output/CV3", "mod26_2022", 2022); gc()
-# sprint_eval(form_fit, data, "output/CV3", "mod26_2023", 2023); gc()
+sprint_eval(form_fit, data, "output/CV3", "mod26_2020", 2020); gc()
+sprint_eval(form_fit, data, "output/CV3", "mod26_2021", 2021); gc()
+sprint_eval(form_fit, data, "output/CV3", "mod26_2022", 2022); gc()
+sprint_eval(form_fit, data, "output/CV3", "mod26_2023", 2023); gc()
 sprint_eval(form_fit, data, "output/CV3", "mod26_2024", 2024); gc()

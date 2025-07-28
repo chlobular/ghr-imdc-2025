@@ -322,8 +322,8 @@ predict_states <- function(sampath, datadf, idperiod){
 #' Prepare point predictions for the entire country
 #'
 #' @param sampath path were the ppd samples geneterated with GHRpredict.
-#' @param datadf data.frame with the whole data
-#' @param idperiod character variable in `datadf` that hold the partition 
+#' @param datadf data.frame with the entire dataset
+#' @param idperiod character variable in `datadf` that holds the partition 
 #' identifiers
 #'
 #' @returns
@@ -339,7 +339,7 @@ predict_country <- function(sampath, datadf, idperiod){
     stop("The ppd samples file and the data.frame do not match.")
   }
   
-  # Aggregate samples to state-date
+  # Aggregate samples to date
   aggr_id <- dataperiod$date
   test_id <- unique(dataperiod$date[dataperiod[idperiod]=="Test"])
   casesaggr <- rowsum(dataperiod$casos, aggr_id)
@@ -360,4 +360,37 @@ predict_country <- function(sampath, datadf, idperiod){
   quants <- quants[quants$date %in% test_id,]
   
   return(quants)
+}
+
+
+#' Compute median improvement in CRPS
+#'
+#' @param crpsbase crps of baseline model
+#' @param crpscompare crps of candidate model
+#' @param datadf data.frame with the entire dataset
+#' @param idperiod character variable in `datadf` that holds the partition 
+#' identifiers 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+crps_change_spatial <- function(crpsbase, crpscompare, datadf, idperiod){
+  
+  # Read crps and check it corresponds to the df
+  dataperiod <- datadf[datadf[,idperiod] %in% c("Hold", "Test"),]
+  if(length(crpsbase) != nrow(dataperiod)){
+    stop("The crps file and the data.frame do not match.")
+  }
+  
+  # Aggr and change computation
+  crpsbase_hr <- rowsum(crpsbase, dataperiod$regional_geocode)
+  crpscompare_hr <- rowsum(crpscompare, dataperiod$regional_geocode)
+  crpsdiff_hr <- c((crpscompare_hr - crpsbase_hr)/crpsbase_hr*100)
+  
+  # Aggregate samples to state-date
+  crpsaggr <- data.frame(regional_geocode = unique(dataperiod$regional_geocode),
+                         crps_change = c(crpsdiff_hr))
+  
+  return(crpsaggr)
 }
