@@ -53,11 +53,14 @@ dengue_fill$target_3 <- "True"
 # Concatenate
 dengue_week <- bind_rows(dengue_week, dengue_fill)
 sapply(dengue_week, function(x) sum(is.na(x)))
+rm("dengue_fill", "dengue_dates")
 
 # Spatial IDs
 dengue_week <- dengue_week |> 
   mutate(hr_id = as.numeric(factor(regional_geocode)), # Health regions
-         state_id = as.numeric(factor(uf))) 
+         state_id = as.numeric(factor(uf)), # States
+         region = as.numeric(substr(regional_geocode, 1, 1)), # Top health regions
+         region_id = as.numeric(factor(region))) 
 
 # Temporal IDs
 dengue_week <- dengue_week |>
@@ -73,7 +76,7 @@ dengue_week <- dengue_week |>
                            epiyear, epiyear + 1),
          year_id = as.numeric(factor(epiyear)))
 
-# define datasets and train/test sets
+# define datasets - missing forecast dataset, to be added
 dengue_week <- dengue_week |> 
   mutate(
     validation_1 = case_when(train_1 == "True" ~ "Train",
@@ -100,11 +103,15 @@ dengue_week <- dengue_week |>
   summarise(casos = sum(casos), across(-c(geocode), first))
 glimpse(dengue_week)
 sapply(dengue_week, function(x) sum(is.na(x)))
+gc()
 
 # Create datasets
-val1 <- dengue_week[dengue_week$validation_1!="Out",]
-val2 <- dengue_week[dengue_week$validation_2!="Out",]
-val3 <- dengue_week[dengue_week$validation_3!="Out",]
+val1 <- dengue_week[dengue_week$validation_1!="Out",] |> 
+  select(-ends_with("_2"), -ends_with("_3"))
+val2 <- dengue_week[dengue_week$validation_2!="Out",] |> 
+  select(-ends_with("_1"), -ends_with("_3"))
+val3 <- dengue_week[dengue_week$validation_3!="Out",]|> 
+  select(-ends_with("_1"), -ends_with("_2"))
 
 
 # 3. Climate covariates -----
@@ -118,14 +125,13 @@ clim3 <- read.csv("data/raw-monthly/clim_validation3.csv") |>
   mutate(date = as.Date(date))
 
 # Scale tas6
-clim1$tas6 <- c(scale(clim1$tas6))
-clim2$tas6 <- c(scale(clim2$tas6))
-clim3$tas6 <- c(scale(clim3$tas6))
+tas6_mean <- mean(clim1$tas6[clim1$year <= 2021])
+tas6_sd <- sd(clim1$tas6[clim1$year <= 2021])
+clim1$tas6 <- (clim1$tas6 - tas6_mean)/tas6_sd
+clim2$tas6 <- (clim2$tas6 - tas6_mean)/tas6_sd
+clim3$tas6 <- (clim3$tas6 - tas6_mean)/tas6_sd
 
 # 4. Lags ----
-clim1$date <- with(clim1, ymd(paste0(year, "-", month, "-01")))
-clim2$date <- with(clim2, ymd(paste0(year, "-", month, "-01")))
-clim3$date <- with(clim3, ymd(paste0(year, "-", month, "-01")))
 
 # tas6.l1
 clim1 <- lag_cov(data = clim1, time = "date", group = "regional_geocode",
@@ -167,6 +173,15 @@ clim2 <- lag_cov(data = clim2, time = "date", group = "regional_geocode",
 clim3 <- lag_cov(data = clim3, time = "date", group = "regional_geocode",
                  name = "spei12", lag = 3, add = TRUE)
 
+# Clean
+clim1 <- select(clim1, -tas6, -oni, -tasan6, -spei3, -spei12, -date)
+sapply(clim1, function(x) sum(is.na(x)))
+clim2 <- select(clim2, -tas6, -oni, -tasan6, -spei3, -spei12, -date)
+sapply(clim2, function(x) sum(is.na(x)))
+clim3 <- select(clim3, -tas6, -oni, -tasan6, -spei3, -spei12, -date)
+sapply(clim3, function(x) sum(is.na(x)))
+
+
 # 5. Challenge covs ----
 
 # read environ data and tranform them into health region resolution
@@ -200,27 +215,40 @@ pop_data <- rbind(pop_data, pop_data_2025)
 
 
 # 6. Merge ----
-
-# Merge weekly dengue cases with covariates by region, year and month
-data_week <- dengue_week |>
-  left_join(clim_data, by = c("regional_geocode", "month", "year")) |>
+val1 <- val1 |>
+  left_join(clim1, by = c("regional_geocode", "month", "year")) |>
   left_join(env_data, by = c("regional_geocode")) |>
-  left_join(pop_data, by = c("regional_geocode", "year")) |>
-  left_join(nino_year, by = c("epiyear"))
-glimpse(data_week)
+  left_join(pop_data, by = c("regional_geocode", "year")) 
+glimpse(val1)
+sapply(val1, function(x) sum(is.na(x)))
 
-# 7. Arrange  ----
-data_week <- arrange(data_week, regional_geocode, date)
-glimpse(data_week)
+val2 <- val2 |>
+  left_join(clim2, by = c("regional_geocode", "month", "year")) |>
+  left_join(env_data, by = c("regional_geocode")) |>
+  left_join(pop_data, by = c("regional_geocode", "year")) 
+glimpse(val2)
+sapply(val2, function(x) sum(is.na(x)))
 
-# 8. Prepare graph ----
+val3 <- val3 |>
+  left_join(clim3, by = c("regional_geocode", "month", "year")) |>
+  left_join(env_data, by = c("regional_geocode")) |>
+  left_join(pop_data, by = c("regional_geocode", "year")) 
+glimpse(val3)
+sapply(val3, function(x) sum(is.na(x)))
+
+# 7. Arrange and prepare graph ----
+val1 <- arrange(val1, regional_geocode, date)
+val2 <- arrange(val2, regional_geocode, date)
+val3 <- arrange(val3, regional_geocode, date)
+
 boundaries <- read_sf("data/boundaries/shape_regional_health.gpkg")
-boundaries <- boundaries[boundaries$regional_geocode %in% data_week$regional_geocode,]
+boundaries <- boundaries[boundaries$regional_geocode %in% val1$regional_geocode,]
 boundaries <- arrange(boundaries, regional_geocode)
 nb <- poly2nb(boundaries)
 g <- nb2mat(nb, style = "B")
 
 # 9. Write final dataset, clean boundaries, and graph ----
-write.csv(data_week, row.names = FALSE, file = "data/processed/weekly_data.csv")
-write_sf(boundaries, "data/boundaries/clean_hr.gpkg")
-saveRDS(g, file = "data/processed/graph.rds")
+write.csv(val1, row.names = FALSE, file = "data/processed/dataset_val1.csv")
+write.csv(val2, row.names = FALSE, file = "data/processed/dataset_val2.csv")
+write.csv(val3, row.names = FALSE, file = "data/processed/dataset_val3.csv")
+saveRDS(g, file = "data/processed/graph_predict.rds")
