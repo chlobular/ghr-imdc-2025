@@ -192,10 +192,10 @@ sprint_mod <- function(formulas,
 #'
 #' @examples
 sprint_eval <- function(formulas, 
-                          data, 
-                          path,
-                          filename,
-                          season){
+                        data, 
+                        path,
+                        filename,
+                        season){
   
   # Convert to GHR formulas
   GHRformulas <- as_GHRformulas(paste0("casos ~ 1", formulas))
@@ -297,7 +297,7 @@ predict_states <- function(sampath, datadf, idperiod){
   test_id <- unique(dataperiod$date[dataperiod[idperiod]=="Test"])
   casesaggr <- rowsum(dataperiod$casos, aggr_id)
   ppdaggr <- rowsum(ppdsamp, aggr_id)
-
+  
   # Compute quantiles
   quants <- apply(ppdaggr, 1, function(x) quantile(x, 
                                                    probs = c(0.025, 0.05, 0.1, 0.25, 0.5, 
@@ -311,7 +311,7 @@ predict_states <- function(sampath, datadf, idperiod){
   quants$date <-  sapply(strsplit(quants$ID, "_"), `[`, 2)
   quants$ID <- NULL
   quants$cases <- casesaggr
-
+  
   # Keep test data only
   quants <- quants[quants$date %in% test_id,]
   
