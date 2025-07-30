@@ -67,6 +67,8 @@ precision.prior <- list(prec = list(prior = "pc.prec", param = c(0.5, 0.01)))
 # Graph
 g <- readRDS("data/processed/graph_predict.rds")
 
+# Utils
+source("R/00_functions.R")
 
 # 2. RE ----
 
@@ -106,7 +108,7 @@ cntrl <-  list(threshold_method = "percentile", p = 0.75,
                threshold_floor = 5, direction = "full")
 (limit <- max(data[data[,dataset_var] == "Train", "date"]))
 
-# model fitting and prediction
+# Model fitting 
 mod <- ghr_predict(formula = form_fit,
                    data = data,
                    family = "nbinomial",
@@ -123,4 +125,10 @@ stats <- prediction_stats(
   spatial_unit = "hr_id",
   control_summary = cntrl, 
   control_stats = list(crps = TRUE, mae = TRUE, rmse = TRUE))
-saveRDS(mod, "output/mod_final/validation2_stats.rds")
+saveRDS(stats, "output/mod_final/validation2_stats.rds")
+
+# Predictions
+states <- predict_states("output/mod_final/validation2_mod.rds", data, dataset_var) 
+write.csv(states, "output/mod_final/validation2_states.csv", row.names = FALSE)
+country <- predict_country("output/mod_final/validation2_mod.rds", data, dataset_var) 
+write.csv(country, "output/mod_final/validation2_country.csv", row.names = FALSE)

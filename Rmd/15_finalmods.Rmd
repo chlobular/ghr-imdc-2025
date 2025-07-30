@@ -1,0 +1,111 @@
+---
+title: "Final models"
+author: "Carles Milà"
+date: "2025-07-25"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = "center",
+                      warning = FALSE,
+                      message = FALSE)
+
+library("dplyr")
+library("ggplot2")
+library("forcats")
+library("geofacet")
+library("sf")
+library("RColorBrewer")
+
+source("R/00_functions.R")
+```
+
+# Global statistics
+
+```{r}
+# Fetch results
+stats <- data.frame("Dataset" = c("validation1", "validation2", "validation3"),
+                    crps = NA, mae = NA, rmse = NA)
+
+for(d in stats$Dataset){
+  mod_it <- readRDS(paste0("output/mod_final/", d, "_stats.rds"))
+  stats[stats$Dataset == d, "crps"] <- mod_it$crps$edf_crps_summary$mean
+  stats[stats$Dataset == d, "mae"] <- mod_it$mae$mae
+  stats[stats$Dataset == d, "rmse"] <- mod_it$rmse$rmse
+}
+stats[sapply(stats, is.numeric)] <- lapply(stats[sapply(stats, is.numeric)], round, digits = 2)
+knitr::kable(stats)
+```
+
+# Country-wide forecasts
+
+```{r, fig.width=8, fig.height=5}
+val1_country <- read.csv("output/mod_final/validation1_country.csv") |> 
+  mutate(Dataset = "Validation 1")
+val2_country <- read.csv("output/mod_final/validation2_country.csv")|> 
+  mutate(Dataset = "Validation 2")
+val3_country <- read.csv("output/mod_final/validation3_country.csv")|> 
+  mutate(Dataset = "Validation 3")
+val_country <- rbind(val1_country, val2_country, val3_country) |> 
+  mutate(date = as.Date(date))
+
+ggplot(val_country) +
+  geom_line(aes(x = date, y = pred, col = Dataset), lwd = 0.6) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, fill = Dataset), 
+              alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90, fill = Dataset), 
+              alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80, fill = Dataset), 
+              alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50, fill = Dataset), 
+              alpha = 0.4) +
+  scale_color_manual(values = c("Validation 1" = "tomato",
+                               "Validation 2" = "royalblue",
+                               "Validation 3" = "purple")) +
+  scale_fill_manual(values = c("Validation 1" = "tomato",
+                               "Validation 2" = "royalblue",
+                               "Validation 3" = "purple")) +
+  geom_line(aes(x = date, y = cases, col = "Cases"), col = "black", lwd = 0.6) +
+  theme_bw() +
+  ylab("Median prediction (50, 80, 90 and 95% CI)") +
+  theme(legend.position = "bottom")
+```
+
+# State forecasts
+
+```{r, fig.width=10, fig.height=9}
+val1_states <- read.csv("output/mod_final/validation1_states.csv") |> 
+  mutate(Dataset = "Validation 1")
+val2_states <- read.csv("output/mod_final/validation2_states.csv")|> 
+  mutate(Dataset = "Validation 2")
+val3_states <- read.csv("output/mod_final/validation3_states.csv")|> 
+  mutate(Dataset = "Validation 3")
+val_states <- rbind(val1_states, val2_states, val3_states) |> 
+  mutate(date = as.Date(date))
+
+ggplot(val_states) +
+  geom_line(aes(x = date, y = pred, col = Dataset), lwd = 0.6) +
+  geom_ribbon(aes(x = date, ymin = lower_95, ymax = upper_95, fill = Dataset), 
+              alpha = 0.1) +
+  geom_ribbon(aes(x = date, ymin = lower_90, ymax = upper_90, fill = Dataset), 
+              alpha = 0.2) +
+  geom_ribbon(aes(x = date, ymin = lower_80, ymax = upper_80, fill = Dataset), 
+              alpha = 0.3) +
+  geom_ribbon(aes(x = date, ymin = lower_50, ymax = upper_50, fill = Dataset), 
+              alpha = 0.4) +
+  scale_color_manual(values = c("Validation 1" = "tomato",
+                               "Validation 2" = "royalblue",
+                               "Validation 3" = "purple")) +
+  scale_fill_manual(values = c("Validation 1" = "tomato",
+                               "Validation 2" = "royalblue",
+                               "Validation 3" = "purple")) +
+  geom_line(aes(x = date, y = cases, col = "Cases"), col = "black", lwd = 0.6) +
+  facet_geo(~ uf, grid = "br_states_grid1", label = "name", scales = "free_y") +
+  theme_bw() +
+  ylab("Median prediction (50, 80, 90 and 95% CI)") +
+  theme(legend.position = "bottom")
+```
