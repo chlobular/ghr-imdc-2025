@@ -84,7 +84,7 @@ dplyr, tidyr, lubridate, zoo, sf, spdep, INLA, splines, here, ggplot2, lares, co
 
 ## Data and Variables
 
-The following variables from documented data sources were used to fit the models, and establish the final prediction model. Note, the following variables were standardised to support convergence in R-INLA (tas, tasmin, tasmax, tas3, tasmin3, tasmax3, tas6, tasmin6, tasmax6, tas12, tasmin12, tasmax12, prlr, prlr3, prlr6, prlr12). The n-month variables represent averages or totals over the preceding n months, ending in the month indicated. These n-monthly variables are matched such that the final month in the time period aligns with the calendar month of day 4 in that particular epidemiological week. All variables were lagged from 0 to 6 months, using the suffix **.ln** where 0 ≤ n ≤ 6.
+The following variables from documented data sources were used to fit the models, and establish the final prediction model. Note, the following variables were standardised to support convergence in R-INLA: tas, tasmin, tasmax, tas3, tasmin3, tasmax3, tas6, tasmin6, tasmax6, tas12, tasmin12, tasmax12, prlr, prlr3, prlr6, prlr12. The n-month variables represent averages or totals over the preceding n months, ending in the month indicated. These n-monthly variables are matched such that the final month in the time period aligns with the calendar month of day 4 in that particular epidemiological week. All variables were lagged from 0 to 6 months, using the suffix **.ln** where 0 ≤ n ≤ 6.
 
 | Variable | Description | Source | Provided? |
 | --- | --- | --- | --- |
@@ -126,6 +126,8 @@ The following variables from documented data sources were used to fit the models
 | **biome** | Dominant biome per health region | Embrapa Agricultura Digital | Yes |
 | **pop** | Annual population per health region | SVS | Yes |
 
+*`*Note, the ONI values in our dataset were right-aligned, instead of centred (as is standard), to ensure consistency with the nino6 and nino12 variables. This means that the ONI values differ to datasets published by NOAA such that it represents the NOAA values lagged by 1 month. Therefore, ONI lagged 7 months (as standard) is denoted as oni.l6 in our dataset.`*
+
 
 ## Modelling Approach
 
@@ -141,13 +143,13 @@ $$
 
 with distribution mean $\mu_{s,t}$ and overdispersion parameter $\kappa$. The distribution mean represents the population per 100,000 $p_{s,a(t)}$ in a given health region $s$ and year $a(t)$ multiplied by the dengue incidence rate $\rho_{s,t}$.
 
-For our final model, we formulated a three-way interaction between the 6-month temperature anomaly lagged 1 month (tasan6.l1, $X_T$), the SPEI-12 lagged by 3 months (spei12.l3, $X_L$), and the SPEI-3 lagged by 1 month (spei3.l1, $X_S$), capturing individual effects ($\beta_T$, $\beta_L$, $\beta_S$) and interacting effects ($\beta_{T,L}$, $\beta_{T,S}$, $\beta_{L,S}$, $\beta_{T,L,S}$), following (REF). For the interaction, each of the 7 terms were specified using random slopes per Köppen ($K$) climate classification (Af, Am, As, Aw, BSh, Cfa, Cfb, Cwa, Cwb), giving different effect sizes per classification. The model also includes three additive variables: the 6-month averaged absolute temperature lagged by 1 month (tas6.l1, $X_A$) using random slopes for separate effects by Köppen classification ($\beta_A$), the ONI lagged 6 months (oni.l6, $X_N$) using a nonlinear effect with 10 equal cuts ($\beta_N$), and a binary cut-off variable indicating if pre-2018 or post-2018 ($X_C$) with a linear effect ($\beta_C$). Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) spatial components.
+For our final model, we formulated a three-way interaction between the 6-month temperature anomaly lagged 1 month (tasan6.l1, $X_T$), the SPEI-12 lagged by 3 months (spei12.l3, $X_L$), and the SPEI-3 lagged by 1 month (spei3.l1, $X_S$), capturing individual effects ($\beta_T$, $\beta_L$, $\beta_S$) and interacting effects ($\beta_{T,L}$, $\beta_{T,S}$, $\beta_{L,S}$, $\beta_{T,L,S}$). This follows the long-short-lag interaction approach applied to predict dengue outbreaks in Barbados (Fletcher et al., in press; Fletcher et al., 2025), which was adapted for the GHR model in the first sprint to predict dengue cases in Brazil (Araujo et al., in review). For the interaction, each of the 7 terms were specified using random slopes per Köppen ($K$) climate classification (Af, Am, As, Aw, BSh, Cfa, Cfb, Cwa, Cwb), giving different effect sizes per classification. The model also includes three additive variables: the 6-month averaged absolute temperature lagged by 1 month (tas6.l1, $X_A$) using random slopes for separate effects by Köppen classification ($\beta_A$), the ONI lagged 7 months (oni.l6*, $X_N$) using a nonlinear effect with 10 equal cuts ($\beta_N$), and a binary cut-off variable indicating if the week preceeds 2018 or not ($X_C$) with a linear effect ($\beta_C$). Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
 
 $$
 \log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_C X_C + \delta_{w(t)} + u_s + v_s
 $$
 
-During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID) model for each epidemiological year (EW41 to EW40). However, the models without the interannual random effect were found to predict better during cross-validation.
+During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID) model for each epidemiological year (spanning EW41 to EW40). However, the models without the interannual random effect were found to have an enhanced predictive performance during cross-validation.
 
 
 ## Model Selection and Cross-Validation
@@ -168,5 +170,6 @@ Lastly, we selected our best prediction model by testing full mixed-effects mode
 
 ## References
 
-- LSL paper
-- IMDC 1 preprint
+**Fletcher C**, Moirano G, Alcayna T, Rollock L et al. Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions, *The Lancet Planetary Health* in press.  
+**Fletcher C**, Moirano G, Alcayna T, Rollock L et al. Data and R code to accompany "Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions" (version v1.0.0). Zenodo 2025. https://doi.org/10.5281/zenodo.15731719  
+**Araujo EC**, Carvalho LM, Ganem F, Vacaro LB et al. Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil, medRxiv 2025.05.12.25327419 [Preprint], 2025.
