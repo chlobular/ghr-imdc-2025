@@ -86,6 +86,8 @@ dplyr, tidyr, lubridate, zoo, sf, spdep, INLA, splines, here, ggplot2, lares, co
 
 The following variables from documented data sources were used to fit the models, and establish the final prediction model. Note, the following variables were standardised to support convergence in R-INLA: tas, tasmin, tasmax, tas3, tasmin3, tasmax3, tas6, tasmin6, tasmax6, tas12, tasmin12, tasmax12, prlr, prlr3, prlr6, prlr12. The n-month variables represent averages or totals over the preceding n months, ending in the month indicated. These n-monthly variables are matched such that the final month in the time period aligns with the calendar month of day 4 in that particular epidemiological week. All variables were lagged from 0 to 6 months, using the suffix **.ln** where 0 ≤ n ≤ 6.
 
+*Table 1: Information for observed data including variable names, descriptions, data sources and whether the data were provided by the sprint oragnisers*
+
 | Variable | Description | Source | Provided? |
 | --- | --- | --- | --- |
 | **casos** | Weekly dengue case counts per health region | SINAN | Yes |
@@ -156,16 +158,24 @@ During model fitting and cross-validation, we also tested this formulation with 
 
 We started model fitting by conducting a comprehensive random-effects model selection process (scripts 02-03). Firstly, we performed a univariable analysis, testing different specifications of spatial, weekly, yearly and time-trend random effects (script 02), as defined in script 00. By using goodness-of-fit metrics, we selected 3 weekly random effects, 2 yearly random effects, 2 spatial random effects, and 0 time-trend random effects to test all combinations of multivariable random-effects models (script 03). Our final multivariable random-effects model was identified by inspecting the Deviance Information Criterion (DIC), Watanabe-Akaike Information Criterion (WAIC), the Log Mean Score (LMS) and Mean Absolute Error (MAE); the fitted vs observed values aggregated by state; and the behaviour of the random effects.
 
-Subsequently, we conducted a comprehensive mixed-effects model selection process (scripts 04-10), where we performed a univariable analysis (script 04) with different covariates (as outlined in Table), bivariable analysis (script 05), bivariable analysis with random slopes (script 06), multivariable (3+) analysis (script 07), interaction model analysis (script 08), incorporate of the interaction model with ONI (script 09) and exploration of fixed-effect time-trend variables (script 10). 
+Subsequently, we conducted a comprehensive mixed-effects model selection process (scripts 04-10), where we performed a univariable analysis (script 04) with different covariates (as outlined in Table 1), bivariable analysis (script 05), bivariable analysis with random slopes (script 06), multivariable (3+) analysis (script 07), interaction model analysis (script 08), analysis with interaction model and ONI (script 09), and exploration of fixed-effect time-trend variables (script 10). 
 
 Lastly, we selected our best prediction model by testing full mixed-effects models with a rolling-origin cross-validation process. We predicted a 12-month season (EW41 to EW40), issuing the forecast from EW25, replicating the real-world forecasting challenge in Brazil. For our internal cross-validation, we opted to use observed climate covariates instead of forecasted climate covariates to evaluate the effectiveness of the model without taking climate forecast uncertainty into consideration.
 
 
 ## Prediction and Validation Tests
 
-- Aggregate by state
-- Data up until EW25
-- Use of forecasts and climatologies
+For the final prediction and validation tests, we used observed climate data up until May of the relevant year (aligned with observations up until EW25), forecasted climate data available from June to December of the same year, and subsequently climatologies based on the reference period of 1991-2020 for the remainder of the forecast/validation period. Due to the lagged climate-disease associations, the observations and forecasts could be extended by the lag-time window (e.g. for SPEI-12 lagged 3 months, we could use fully-observed SPEI-12 up to August and forecasted SPEI-12 up to March). Table 2 shows the forecast data used to calculate forecasted tas6.l1, tasan6.l1, spei12.l3, spei3.l1 and oni.l6 (in combination with observed data for variables with persistence components).
+
+*Table 2: Information for forecast data including variable names, bias correction and downscaling techniques applied, number of ensemble members, data sources and whether the data were provided by the sprint organisers*
+
+| Variable | Bias Correction and Downscaling Techniques | Ensemble Members | Source | Provided? |
+| --- | --- | --- | --- | --- |
+| **tas** |  | 51 | SEAS51 | No |
+| **prlr** |  | 51 | SEAS51 | No |
+| **nino34** |  | 51 | SEAS51 | No |
+
+During prediction, we set all case data to NA values beyond EW25 of the forecast/validation period and used R-INLA to obtain the posterior predictive distribution of cases for each week from EW41 to EW40. We drew 500 samples from each posterior predictive distribution, aggregated the cases from health region to state level for each sample, and generated summary statistics including the median cases, and the 50%, 80%, 90% and 95% intervals.
 
 
 ## References
