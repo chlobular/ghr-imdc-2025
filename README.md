@@ -165,14 +165,14 @@ Lastly, we selected our best prediction model by testing full mixed-effects mode
 
 ## Prediction and Validation Tests
 
-For the final prediction and validation tests, we used observed climate data up until May of the relevant year (aligned with observations up until EW25), forecasted climate data available from June to December of the same year, and subsequently climatologies based on the reference period of 1991-2020 for the remainder of the forecast/validation period. Due to the lagged climate-disease associations, the observations and forecasts could be extended by the lag-time window (e.g. for SPEI-12 lagged 3 months, we could use fully-observed SPEI-12 up to August and forecasted SPEI-12 up to March). Table 2 shows the forecast data used to calculate forecasted tas6.l1, tasan6.l1, spei12.l3, spei3.l1 and oni.l6 (in combination with observed data for variables with persistence components).
+For the final prediction and validation tests, we used observed climate data up until May of the relevant year (aligned with observations up until EW25), forecasted climate data available from June to December of the same year, and subsequently climatologies based on the reference period of 1991-2020 for the remainder of the forecast/validation period. Due to the lagged climate-disease associations, the observations and forecasts could be extended by the lag-time window (e.g. for SPEI-12 lagged 3 months, we could use fully-observed SPEI-12 up to August and forecasted SPEI-12 up to March). Table 2 shows the forecast data used to calculate forecasted tas6.l1, tasan6.l1, spei12.l3, spei3.l1 and oni.l6 (in combination with observed data for variables with persistence components), along with the bias correction and downscaling techniques applied to the raw forecast data including the error-in-variable method (Van Schaeybroeck, 2011; CSTools, 2025a), and quantile mapping using empirical cumulative distribution function (CSTools, 2025b).
 
 *Table 2: Information for forecast data including variable names, bias correction and downscaling techniques applied, number of ensemble members, data sources and whether the data were provided by the sprint organisers*
 
 | Variable | Bias Correction and Downscaling Techniques | Ensemble Members | Source | Provided? |
 | --- | --- | --- | --- | --- |
-| **tas** |  | 51 | SEAS51 | No |
-| **prlr** |  | 51 | SEAS51 | No |
+| **tas** | Error-in-variable method (EVMOS) at the health region level | 51 | SEAS51 | No |
+| **prlr** | Quantile mapping using empirical cumulative distribution function at the health region level | 51 | SEAS51 | No |
 | **nino34** |  | 51 | SEAS51 | No |
 
 During prediction, we set all case data to NA values beyond EW25 of the forecast/validation period and used R-INLA to obtain the posterior predictive distribution of cases for each week from EW41 to EW40. We drew 500 samples from each posterior predictive distribution, aggregated the cases from health region to state level for each sample, and generated summary statistics including the median cases, and the 50%, 80%, 90% and 95% intervals.
@@ -180,6 +180,9 @@ During prediction, we set all case data to NA values beyond EW25 of the forecast
 
 ## References
 
-**Fletcher C**, Moirano G, Alcayna T, Rollock L et al. Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions, *The Lancet Planetary Health* in press.  
-**Fletcher C**, Moirano G, Alcayna T, Rollock L et al. Data and R code to accompany "Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions" (version v1.0.0). Zenodo 2025. https://doi.org/10.5281/zenodo.15731719  
-**Araujo EC**, Carvalho LM, Ganem F, Vacaro LB et al. Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil, medRxiv 2025.05.12.25327419 [Preprint], 2025.
+- **Araujo EC**, Carvalho LM, Ganem F, Vacaro LB et al. (2025) Leveraging probabilistic forecasts for dengue preparedness and control: the 2024 Dengue Forecasting Sprint in Brazil, medRxiv 2025.05.12.25327419 [Preprint].  
+- **CSTools** (2025a) CST_Calibration: Forecast Calibration (WWW), *rdrr.io CSTools (version 5.2.0)*, https://rdrr.io/cran/CSTools/man/CST_Calibration.html [Accessed 30 Jul 2025].  
+- **CSTools** (2025b) CST_QuantileMapping: Quantiles Mapping for seasonal or decadal forecast data (WWW), *rdrr.io CSTools (version 5.2.0)*, https://rdrr.io/cran/CSTools/man/CST_QuantileMapping.html [Accessed 30 Jul 2025].  
+- **Fletcher C**, Moirano G, Alcayna T, Rollock L et al. (in press) Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions, *The Lancet Planetary Health*.  
+- **Fletcher C**, Moirano G, Alcayna T, Rollock L et al. (2025) Data and R code to accompany "Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions" (version v1.0.0), *Zenodo*, https://doi.org/10.5281/zenodo.15731719  
+- **Van Schaeybroeck B** and Vannitsem S (2011) Post-processing through linear regression, *Nonlinear Processes in Geophysics*, 18, 147-160.
