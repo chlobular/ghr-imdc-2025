@@ -26,11 +26,13 @@ Barcelona Supercomputing Center (BSC), Spain
 Catalan Institution for Research and Advanced Studies (ICREA), Spain  
 London School of Hygiene and Tropical Medicine, United Kingdom
 
+<div align="justify">
 
 ## Repository Structure
 
 This repository contains the code, outputs and figures for the GHR team in the 2nd IMDC 2025.
 
+<div style="font-size: 90%;">
 <pre lang="markdown">
 <b>sprint2025/</b>
 │
@@ -75,7 +77,7 @@ This repository contains the code, outputs and figures for the GHR team in the 2
 │   ├── CV_modtab2.png              # Table of cross-validation models (round 2)
 │   └── CV_modtab3.png              # Table of cross-validation models (round 3)
 </pre>
-
+</div>
 
 ## Dependencies
 
@@ -186,3 +188,5 @@ During prediction, we set all case data to NA values beyond EW25 of the forecast
 - **Fletcher C**, Moirano G, Alcayna T, Rollock L et al. (in press) Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions, *The Lancet Planetary Health*.  
 - **Fletcher C**, Moirano G, Alcayna T, Rollock L et al. (2025) Data and R code to accompany "Compound and cascading effects of climatic extremes on dengue outbreak risk in the Caribbean: an impact-based modelling framework with long-lag and short-lag interactions" (version v1.0.0), *Zenodo*, https://doi.org/10.5281/zenodo.15731719  
 - **Van Schaeybroeck B** and Vannitsem S (2011) Post-processing through linear regression, *Nonlinear Processes in Geophysics*, 18, 147-160.
+
+</div>
