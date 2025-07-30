@@ -28,61 +28,6 @@ London School of Hygiene and Tropical Medicine, United Kingdom
 
 <div align="justify">
 
-## Repository Structure
-
-This repository contains the code, outputs and figures for the GHR team in the 2nd IMDC 2025.
-
-<div style="font-size: 50%;">
-<pre lang="markdown">
-<b>sprint2025/</b>
-│
-├── <b>R/                              # R scripts for functions, data processing, modelling, and cross validation</b>
-│   ├── 00_RE_formuni.R             # Specify random effects for univariable analysis
-│   ├── 00_functions.R              # Outline helper functions 
-│   ├── 01_data_preparation.R       # Data loading and pre-processing
-│   ├── 02_RE_univariate.R          # Fitting univariable random-effects models
-│   ├── 03_RE_complete.R            # Fitting full random-effects models
-│   ├── 04_FE_uni.R                 # Fitting univariable mixed-effects models
-│   ├── 05_FE_bi.R                  # Fitting bivariable mixed-effects models
-│   ├── 06_FE_bi_slopes.R           # Fitting bivariate mixed-effects models with random slopes
-│   ├── 07_FE_multi.R               # Fitting multivariable mixed-effects models
-│   ├── 08_FE_interact.R            # Fitting multivariable mixed-effects models with interactions
-│   ├── 09_FE_oni.R                 # Fitting multivariable mixed-effects models with Oceanic Niño Index (ONI) fixed effects
-│   ├── 10_FE_trend.R               # Fitting multivariable mixed-effects models with trend-based effects
-│   ├── 11_CV.R                     # Cross-validation (rolling-origin)
-│   ├── 11_CV/                      # Cross-validation outputs (round 1)
-│   ├── 12_CV2/                     # Cross-validation outputs (round 2)
-│   ├── 13_CV3/                     # Cross-validation outputs (round 3)
-│   ├── XX_ghrpredict.R             # Workflow of GHRpredict function
-│   ├── XX_onebasis.R               # Application of one basis approach in GHRmodel
-│   └── run.sh                      # Shell script for running in BSC MN5
-│
-├── <b>Rmd/                            # R Markdown files and rendered HTML reports</b>
-│   ├── 01_exploratory.Rmd/.html    # Exploratory data analysis and visualisations
-│   ├── 02_uniRE.Rmd/.html          # Results for univariable random-effects models
-│   ├── 03_multiRE.Rmd/.html        # Results for multivariable random-effects models
-│   ├── 04_uniFE.Rmd/.html          # Results for univariable mixed-effects models
-│   ├── 05_biFE.Rmd/.html           # Results for bivariable mixed-effects models
-│   ├── 06_biFE_slopes.Rmd/.html    # Results for bivariable mixed-effects models with random slopes
-│   ├── 07_multiFE.Rmd/.html        # Results for multivariable mixed-effects models
-│   ├── 08_interFE.Rmd/.html        # Results for multivariable mixed-effects models with interactions
-│   ├── 09_oniFE.Rmd/.html          # Results for multivariable mixed-effects models with ONI fixed effects
-│   ├── 10_trendFE.Rmd/.html        # Results for multivariable mixed-effects models with trend-based effects
-│   ├── 11_CV.Rmd/.html             # Cross-validation results (round 1)
-│   ├── 12_CV2.Rmd/.html            # Cross-validation results (round 2)
-│   ├── 12_CV3.Rmd/.html            # Cross-validation results (round 3)
-│
-├── <b>figures/                        # Saved figures</b>
-│   ├── CV_modtab.png               # Table of cross-validation models (round 1)
-│   ├── CV_modtab2.png              # Table of cross-validation models (round 2)
-│   └── CV_modtab3.png              # Table of cross-validation models (round 3)
-</pre>
-</div>
-
-## Dependencies
-
-dplyr, tidyr, lubridate, zoo, sf, spdep, INLA, splines, here, ggplot2, lares, cowplot, purrr, forcasts, GHRexplore, GHRmodel *(soon on CRAN)*, GHRpredict *(soon on CRAN)*
-
 
 ## Data and Variables
 
@@ -175,9 +120,64 @@ For the final prediction and validation tests, we used observed climate data up 
 | --- | --- | --- | --- | --- |
 | **tas** | Error-in-variable method (EVMOS) at the health region level | 51 | SEAS51 | No |
 | **prlr** | Quantile mapping using empirical cumulative distribution function at the health region level | 51 | SEAS51 | No |
-| **nino34** |  | 51 | SEAS51 | No |
+| **nino34** | Error-in-variable method (EVMOS) for the Niño 3.4 region | 51 | SEAS51 | No |
 
 During prediction, we set all case data to NA values beyond EW25 of the forecast/validation period and used R-INLA to obtain the posterior predictive distribution of cases for each week from EW41 to EW40. We drew 500 samples from each posterior predictive distribution, aggregated the cases from health region to state level for each sample, and generated summary statistics including the median cases, and the 50%, 80%, 90% and 95% intervals.
+
+
+## Repository Structure
+
+This repository contains the code, outputs and figures for the GHR team in the 2nd IMDC 2025.
+
+<pre lang="markdown">
+<b>sprint2025/</b>
+│
+├── <b>R/                              # R scripts for functions, data processing, modelling, and cross validation</b>
+│   ├── 00_RE_formuni.R             # Specify random effects for univariable analysis
+│   ├── 00_functions.R              # Outline helper functions 
+│   ├── 01_data_preparation.R       # Data loading and pre-processing
+│   ├── 02_RE_univariate.R          # Fitting univariable random-effects models
+│   ├── 03_RE_complete.R            # Fitting full random-effects models
+│   ├── 04_FE_uni.R                 # Fitting univariable mixed-effects models
+│   ├── 05_FE_bi.R                  # Fitting bivariable mixed-effects models
+│   ├── 06_FE_bi_slopes.R           # Fitting bivariate mixed-effects models with random slopes
+│   ├── 07_FE_multi.R               # Fitting multivariable mixed-effects models
+│   ├── 08_FE_interact.R            # Fitting multivariable mixed-effects models with interactions
+│   ├── 09_FE_oni.R                 # Fitting multivariable mixed-effects models with Oceanic Niño Index (ONI) fixed effects
+│   ├── 10_FE_trend.R               # Fitting multivariable mixed-effects models with trend-based effects
+│   ├── 11_CV.R                     # Cross-validation (rolling-origin)
+│   ├── 11_CV/                      # Cross-validation outputs (round 1)
+│   ├── 12_CV2/                     # Cross-validation outputs (round 2)
+│   ├── 13_CV3/                     # Cross-validation outputs (round 3)
+│   ├── XX_ghrpredict.R             # Workflow of GHRpredict function
+│   ├── XX_onebasis.R               # Application of one basis approach in GHRmodel
+│   └── run.sh                      # Shell script for running in BSC MN5
+│
+├── <b>Rmd/                            # R Markdown files and rendered HTML reports</b>
+│   ├── 01_exploratory.Rmd/.html    # Exploratory data analysis and visualisations
+│   ├── 02_uniRE.Rmd/.html          # Results for univariable random-effects models
+│   ├── 03_multiRE.Rmd/.html        # Results for multivariable random-effects models
+│   ├── 04_uniFE.Rmd/.html          # Results for univariable mixed-effects models
+│   ├── 05_biFE.Rmd/.html           # Results for bivariable mixed-effects models
+│   ├── 06_biFE_slopes.Rmd/.html    # Results for bivariable mixed-effects models with random slopes
+│   ├── 07_multiFE.Rmd/.html        # Results for multivariable mixed-effects models
+│   ├── 08_interFE.Rmd/.html        # Results for multivariable mixed-effects models with interactions
+│   ├── 09_oniFE.Rmd/.html          # Results for multivariable mixed-effects models with ONI fixed effects
+│   ├── 10_trendFE.Rmd/.html        # Results for multivariable mixed-effects models with trend-based effects
+│   ├── 11_CV.Rmd/.html             # Cross-validation results (round 1)
+│   ├── 12_CV2.Rmd/.html            # Cross-validation results (round 2)
+│   ├── 12_CV3.Rmd/.html            # Cross-validation results (round 3)
+│
+├── <b>figures/                        # Saved figures</b>
+│   ├── CV_modtab.png               # Table of cross-validation models (round 1)
+│   ├── CV_modtab2.png              # Table of cross-validation models (round 2)
+│   └── CV_modtab3.png              # Table of cross-validation models (round 3)
+</pre>
+
+
+## Dependencies
+
+dplyr, tidyr, lubridate, zoo, sf, spdep, INLA, splines, here, ggplot2, lares, cowplot, purrr, forcasts, GHRexplore, GHRmodel *(soon on CRAN)*, GHRpredict *(soon on CRAN)*
 
 
 ## References
