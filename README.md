@@ -32,7 +32,7 @@ London School of Hygiene and Tropical Medicine, United Kingdom
 
 This repository contains the code, outputs and figures for the GHR team in the 2nd IMDC 2025.
 
-<div style="font-size: 90%;">
+<div style="font-size: 50%;">
 <pre lang="markdown">
 <b>sprint2025/</b>
 │
