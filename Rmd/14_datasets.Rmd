@@ -1,0 +1,85 @@
+---
+title: "Sprint datasets"
+author: "Carles Milà"
+date: "2025-07-30"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.align = 'center',
+                      fig.width = 8, fig.height = 3,
+                      warning = FALSE, message = FALSE)
+```
+
+```{r data, include=FALSE}
+library("dplyr")
+library("ggplot2")
+
+# Read val1
+val1 <- read.csv("data/processed/dataset_val1.csv") |> 
+  mutate(date = as.Date(date))
+glimpse(val1)
+max(val1$epiweek[val1$validation_1=="Train"])
+min(val1$epiweek[val1$validation_1=="Test"])
+max(val1$epiweek)
+
+# Read val2
+val2 <- read.csv("data/processed/dataset_val2.csv") |> 
+  mutate(date = as.Date(date))
+glimpse(val2)
+max(val2$epiweek[val2$validation_2=="Train"])
+min(val2$epiweek[val2$validation_2=="Test"])
+max(val2$epiweek)
+
+# Read val3
+val3 <- read.csv("data/processed/dataset_val3.csv") |> 
+  mutate(date = as.Date(date))
+glimpse(val3)
+max(val3$epiweek[val3$validation_3=="Train"])
+min(val3$epiweek[val3$validation_3=="Test"])
+max(val3$epiweek)
+
+# Stack
+val_all <- bind_rows(val1 |> mutate(dataset = "Validation1"),
+                     val2 |> mutate(dataset = "Validation2"),
+                     val3 |> mutate(dataset = "Validation3"))
+```
+
+```{r plot}
+# Plot variables
+region <- val1$regional_geocode[400]
+
+# casos
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = casos, col = dataset)) +
+  theme_bw()
+
+# tas6.l1
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = tas6.l1, col = dataset)) +
+  theme_bw()
+
+# oni.l6
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = oni.l6, col = dataset)) +
+  theme_bw()
+
+# tasan6.l1
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = tasan6.l1, col = dataset)) +
+  theme_bw()
+
+# spei3.l1
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = spei3.l1, col = dataset)) +
+  theme_bw()
+
+# spei12.l3
+ggplot(val_all[val_all$regional_geocode == region,]) +
+  geom_line(aes(x = date, y = spei12.l3, col = dataset)) +
+  theme_bw()
+```
