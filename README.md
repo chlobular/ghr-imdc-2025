@@ -113,12 +113,12 @@ We started model fitting by conducting a comprehensive random-effects model sele
 
 Subsequently, we conducted a comprehensive mixed-effects model selection process (scripts 04-10), where we performed a univariable analysis (script 04) with different covariates (as outlined in Table 1), bivariable analysis (script 05), bivariable analysis with random slopes (script 06), multivariable (3+) analysis (script 07), interaction model analysis (script 08), analysis with interaction model and ONI (script 09), and exploration of fixed-effect time-trend variables (script 10). 
 
-Lastly, we selected our best prediction model by testing full mixed-effects models with a rolling-origin cross-validation process. We predicted a 12-month season (EW41 to EW40), issuing the forecast from EW25, replicating the real-world forecasting challenge in Brazil. For our internal cross-validation, we opted to use observed climate covariates instead of forecasted climate covariates to evaluate the effectiveness of the model without taking climate forecast uncertainty into consideration.
+Lastly, we selected our best prediction model by testing full mixed-effects models with a rolling-origin cross-validation process (scripts 11-13). We predicted a 12-month season (EW41 to EW40), issuing the forecast from EW25, replicating the real-world forecasting challenge in Brazil. For our internal cross-validation, we opted to use observed climate covariates instead of forecasted climate covariates to evaluate the effectiveness of the model without taking climate forecast uncertainty into consideration.
 
 
 ## Prediction and Validation Tests
 
-For the final prediction and validation tests, we used observed climate data up until May of the relevant year (aligned with observations up until EW25), forecasted climate data available from June to December of the same year, and subsequently climatologies based on the reference period of 1991-2020 for the remainder of the forecast/validation period. Due to the lagged climate-disease associations, the observations and forecasts could be extended by the lag-time window (e.g. for SPEI-12 lagged 3 months, we could use fully-observed SPEI-12 up to August and forecasted SPEI-12 up to March). Table 2 shows the forecast data used to calculate forecasted tas6.l1, tasan6.l1, spei12.l3, spei3.l1 and oni.l6 (in combination with observed data for variables with persistence components), along with the bias correction and downscaling techniques applied to the raw forecast data including the error-in-variable method (Van Schaeybroeck, 2011; CSTools, 2025a), and quantile mapping using empirical cumulative distribution function (CSTools, 2025b).
+For the final prediction and validation tests, we used observed climate data up until May of the relevant year (aligned with observations up until EW25), forecasted climate data available from June to December of the same year, and subsequently climatologies based on the reference period of 1991-2020 for the remainder of the forecast/validation period (script 14). Due to the lagged climate-disease associations, the observations and forecasts could be extended by the lag-time window (e.g. for SPEI-12 lagged 3 months, we could use fully-observed SPEI-12 up to August and forecasted SPEI-12 up to March). Table 2 shows the forecast data used to calculate forecasted tas6.l1, tasan6.l1, spei12.l3, spei3.l1 and oni.l6 (in combination with observed data for variables with persistence components), along with the bias correction and downscaling techniques applied to the raw forecast data including the error-in-variable method (Van Schaeybroeck, 2011; CSTools, 2025a), and quantile mapping using empirical cumulative distribution function (CSTools, 2025b).
 
 *Table 2: Information for forecast data including variable names, bias correction and downscaling techniques applied, number of ensemble members, data sources and whether the data were provided by the sprint organisers*
 
@@ -128,7 +128,7 @@ For the final prediction and validation tests, we used observed climate data up 
 | **prlr** | Quantile mapping using empirical cumulative distribution function at the health region level | 51 | SEAS51 | No |
 | **nino34** | Error-in-variable method (EVMOS) for the Niño 3.4 region | 51 | SEAS51 | No |
 
-During prediction, we set all case data to NA values beyond EW25 of the forecast/validation period and used R-INLA to obtain the posterior predictive distribution of cases for each week from EW41 to EW40. We drew 500 samples from each posterior predictive distribution, aggregated the cases from health region to state level for each sample, and generated summary statistics including the median cases, and the 50%, 80%, 90% and 95% intervals.
+During prediction (script 15), we set all case data to NA values beyond EW25 of the forecast/validation period and used R-INLA to obtain the posterior predictive distribution of cases for each week from EW41 to EW40. We drew 500 samples from each posterior predictive distribution, aggregated the cases from health region to state level for each sample, and generated summary statistics including the median cases, and the 50%, 80%, 90% and 95% intervals.
 
 
 ## Repository Structure
@@ -173,7 +173,7 @@ This repository contains the code, outputs and figures for the GHR team in the 2
 │   ├── 12_CV2.Rmd/.html            # Cross-validation results (round 2)
 │   ├── 13_CV3.Rmd/.html            # Cross-validation results (round 3)
 │   ├── 14_datasets.Rmd/.html       # Exploratory analysis of the final datasets used to train final models
-│   ├── 15_finalmods.Rmd/.html      # Inspection of the predictions to be submitted
+│   └── 15_finalmods.Rmd/.html      # Inspection of the predictions to be submitted
 │
 ├── <b>figures/                        # Saved figures</b>
 │   ├── CV_modtab.png               # Table of cross-validation models (round 1)
