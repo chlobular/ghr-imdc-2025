@@ -15,6 +15,10 @@ The Global Health Resilience (GHR) group is based at the Barcelona Supercomputin
 </a> Barcelona Supercomputing Center (BSC), Spain  
 Department of Medicine & Life Sciences, Universitat Pompeu Fabra, Spain
 
+**[Daniela Lührsen](https://www.bsc.es/es/luhrsen-daniela-sofie)**<a href="https://orcid.org/0009-0002-6340-5964">
+  <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
+</a> Barcelona Supercomputing Center (BSC), Spain  
+
 **[Giovenale Moirano](https://www.bsc.es/moirano-giovenale)**<a href="https://orcid.org/0000-0001-8748-3321">
   <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
 </a> Università degli Studi di Torino, Italy  
@@ -92,13 +96,15 @@ $$
 
 with distribution mean $\mu_{s,t}$ and overdispersion parameter $\kappa$. The distribution mean represents the population per 100,000 $p_{s,a(t)}$ in a given health region $s$ and year $a(t)$ multiplied by the dengue incidence rate $\rho_{s,t}$.
 
-For our final model, we formulated a three-way interaction between the 6-month temperature anomaly lagged 1 month (tasan6.l1, $X_T$), the SPEI-12 lagged by 3 months (spei12.l3, $X_L$), and the SPEI-3 lagged by 1 month (spei3.l1, $X_S$), capturing individual effects ($\beta_T$, $\beta_L$, $\beta_S$) and interacting effects ($\beta_{T,L}$, $\beta_{T,S}$, $\beta_{L,S}$, $\beta_{T,L,S}$). This follows the long-short-lag interaction approach applied to predict dengue outbreaks in Barbados (Fletcher et al., in press; Fletcher et al., 2025), which was adapted for the GHR model in the first sprint to predict dengue cases in Brazil (Araujo et al., in review). For the interaction, each of the 7 terms were specified using random slopes per Köppen ($K$) climate classification (Af, Am, As, Aw, BSh, Cfa, Cfb, Cwa, Cwb), giving different effect sizes per classification. The model also includes three additive variables: the 6-month averaged absolute temperature lagged by 1 month (tas6.l1, $X_A$) using random slopes for separate effects by Köppen classification ($\beta_A$), the ONI lagged 7 months (oni.l6, $X_N$) using a nonlinear effect with 10 equal cuts ($\beta_N$), and a binary cut-off variable indicating if the week preceeds 2018 or not ($X_C$) with a linear effect ($\beta_C$). Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
+For our final model, we formulated a three-way interaction between the 6-month temperature anomaly lagged 1 month (tasan6.l1, $X_T$), the SPEI-12 lagged by 3 months (spei12.l3, $X_L$), and the SPEI-3 lagged by 1 month (spei3.l1, $X_S$), capturing individual effects ($\beta_T$, $\beta_L$, $\beta_S$) and interacting effects ($\beta_{T,L}$, $\beta_{T,S}$, $\beta_{L,S}$, $\beta_{T,L,S}$). This follows the long-short-lag interaction approach applied to predict dengue outbreaks in Barbados (Fletcher et al., in press; Fletcher et al., 2025), which was adapted for the GHR model in the first sprint to predict dengue cases in Brazil (Araujo et al., in review). For the interaction, each of the 7 terms were specified using random slopes per Köppen ($K$) climate classification (Af, Am, As, Aw, BSh, Cfa, Cfb, Cwa, Cwb), giving different effect sizes per classification. The model also includes three additive variables: the 6-month averaged absolute temperature lagged by 1 month (tas6.l1, $X_A$) using random slopes for separate effects by Köppen classification ($\beta_A$), the ONI lagged 7 months (oni.l6, $X_N$) using a nonlinear effect with 10 equal cuts ($\beta_N$), and a binary cut-off variable indicating if the week preceeds 2018 or not ($X_C$) with a linear effect ($\beta_C$) using random slopes for separate effects by state (U). 
+
+Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$) replicated by state (U), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
 
 $$
-\log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_C X_C + \delta_{w(t)} + u_s + v_s
+\log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_{C,U} X_{C,U} + \delta_{w(t), U} + u_s + v_s
 $$
 
-During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID) model for each epidemiological year (spanning EW41 to EW40). However, the models without the interannual random effect were found to have an enhanced predictive performance during cross-validation.
+During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID), RW1, and RW2 model for each epidemiological year (spanning EW41 to EW40). However, the models without the interannual random effect were found to have an enhanced predictive performance during cross-validation.
 
 
 ## Model Selection and Cross-Validation
@@ -145,12 +151,11 @@ This repository contains the code, outputs and figures for the GHR team in the 2
 │   ├── 08_FE_interact.R            # Fitting multivariable mixed-effects models with interactions
 │   ├── 09_FE_oni.R                 # Fitting multivariable mixed-effects models with Oceanic Niño Index (ONI) fixed effects
 │   ├── 10_FE_trend.R               # Fitting multivariable mixed-effects models with trend-based effects
-│   ├── 11_CV.R                     # Cross-validation (rolling-origin)
 │   ├── 11_CV/                      # Cross-validation outputs (round 1)
 │   ├── 12_CV2/                     # Cross-validation outputs (round 2)
 │   ├── 13_CV3/                     # Cross-validation outputs (round 3)
-│   ├── XX_ghrpredict.R             # Workflow of GHRpredict function
-│   ├── XX_onebasis.R               # Application of one basis approach in GHRmodel
+│   ├── 14_fcst_preparation.R       # Data loading and pre-processing for validation datasets
+│   ├── 15_fitmodels/               # Fit final models and compute predictions to be submitted
 │   └── run.sh                      # Shell script for running in BSC MN5
 │
 ├── <b>Rmd/                            # R Markdown files and rendered HTML reports</b>
@@ -166,7 +171,9 @@ This repository contains the code, outputs and figures for the GHR team in the 2
 │   ├── 10_trendFE.Rmd/.html        # Results for multivariable mixed-effects models with trend-based effects
 │   ├── 11_CV.Rmd/.html             # Cross-validation results (round 1)
 │   ├── 12_CV2.Rmd/.html            # Cross-validation results (round 2)
-│   ├── 12_CV3.Rmd/.html            # Cross-validation results (round 3)
+│   ├── 13_CV3.Rmd/.html            # Cross-validation results (round 3)
+│   ├── 14_datasets.Rmd/.html       # Exploratory analysis of the final datasets used to train final models
+│   ├── 15_finalmods.Rmd/.html      # Inspection of the predictions to be submitted
 │
 ├── <b>figures/                        # Saved figures</b>
 │   ├── CV_modtab.png               # Table of cross-validation models (round 1)
@@ -176,6 +183,8 @@ This repository contains the code, outputs and figures for the GHR team in the 2
 
 
 ## Dependencies
+
+The code was run in R version 4.4.3 (local) and version 4.3.3 (HPC).
 
 dplyr, tidyr, lubridate, zoo, sf, spdep, INLA, splines, here, ggplot2, lares, cowplot, purrr, forcasts, GHRexplore, GHRmodel *(soon on CRAN)*, GHRpredict *(soon on CRAN)*
 
