@@ -86,13 +86,13 @@ The following variables from documented data sources were used to fit the models
 
 For our modelling approach, we specified a Bayesian hierarchical mixed-effects model using dengue case counts $y_{s,t}$ as our response variable per health region ($s$) per epidemiological week in the time series ($t$). To account for potential overdispersion, case counts were assumed to follow a negative binomial distribution such that:
 
-$$
+```math
 y_{s,t} \mid \mu_{s,t} \sim \text{NegBin}(\mu_{s,t}, \kappa)
-$$
+```
 
-$$
+```math
 \log(\mu_{s,t}) = \log(p_{s,a(t)}) + \log(\rho_{s,t})
-$$
+```
 
 with distribution mean $\mu_{s,t}$ and overdispersion parameter $\kappa$. The distribution mean represents the population per 100,000 $p_{s,a(t)}$ in a given health region $s$ and year $a(t)$ multiplied by the dengue incidence rate $\rho_{s,t}$.
 
@@ -100,9 +100,9 @@ For our final model, we formulated a three-way interaction between the 6-month t
 
 Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$) replicated by state ($U$), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
 
-$$
+```math
 \log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_{C,U} X_{C,U} + \delta_{w(t),U} + u_s + v_s
-$$
+```
 
 During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID), RW1, and RW2 model for each epidemiological year (spanning EW41 to EW40). However, the models without the interannual random effect were found to have an enhanced predictive performance during cross-validation.
 
