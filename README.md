@@ -15,14 +15,14 @@ The Global Health Resilience (GHR) group is based at the Barcelona Supercomputin
 </a> Barcelona Supercomputing Center (BSC), Spain  
 Department of Medicine & Life Sciences, Universitat Pompeu Fabra, Spain
 
-**[Daniela Lührsen](https://www.bsc.es/es/luhrsen-daniela-sofie)**<a href="https://orcid.org/0009-0002-6340-5964">
-  <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
-</a> Barcelona Supercomputing Center (BSC), Spain  
-
 **[Giovenale Moirano](https://www.bsc.es/moirano-giovenale)**<a href="https://orcid.org/0000-0001-8748-3321">
   <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
 </a> Università degli Studi di Torino, Italy  
 Barcelona Supercomputing Center (BSC), Spain
+
+**[Daniela Lührsen](https://www.bsc.es/es/luhrsen-daniela-sofie)**<a href="https://orcid.org/0009-0002-6340-5964">
+  <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
+</a> Barcelona Supercomputing Center (BSC), Spain  
 
 **[Rachel Lowe](https://www.bsc.es/lowe-rachel)**<a href="https://orcid.org/0000-0003-3939-7343">
   <img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" alt="ORCID" />  
@@ -98,10 +98,10 @@ with distribution mean $\mu_{s,t}$ and overdispersion parameter $\kappa$. The di
 
 For our final model, we formulated a three-way interaction between the 6-month temperature anomaly lagged 1 month (tasan6.l1, $X_T$), the SPEI-12 lagged by 3 months (spei12.l3, $X_L$), and the SPEI-3 lagged by 1 month (spei3.l1, $X_S$), capturing individual effects ($\beta_T$, $\beta_L$, $\beta_S$) and interacting effects ($\beta_{T,L}$, $\beta_{T,S}$, $\beta_{L,S}$, $\beta_{T,L,S}$). This follows the long-short-lag interaction approach applied to predict dengue outbreaks in Barbados (Fletcher et al., in press; Fletcher et al., 2025), which was adapted for the GHR model in the first sprint to predict dengue cases in Brazil (Araujo et al., in review). For the interaction, each of the 7 terms were specified using random slopes per Köppen ($K$) climate classification (Af, Am, As, Aw, BSh, Cfa, Cfb, Cwa, Cwb), giving different effect sizes per classification. The model also includes three additive variables: the 6-month averaged absolute temperature lagged by 1 month (tas6.l1, $X_A$) using random slopes for separate effects by Köppen classification ($\beta_A$), the ONI lagged 7 months (oni.l6, $X_N$) using a nonlinear effect with 10 equal cuts ($\beta_N$), and a binary cut-off variable indicating if the week preceeds 2018 or not ($X_C$) with a linear effect ($\beta_C$) using random slopes for separate effects by state (U). 
 
-Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$) replicated by state (U), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
+Additionally, the model comprises an intercept ($\alpha$), a temporal random effect $\delta_{w(t)}$ to account for weekly variation in dengue cases specified as a cyclic second-order random walk (RW2) model for each epidemiological week ($w(t)$) replicated by state ($U$), and a spatial random effect specified as a modified Besag-York-Mollie (BYM2) model at the health region level which includes structured ($u_s$) and unstructured ($v_s$) components.
 
 $$
-\log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_{C,U} X_{C,U} + \delta_{w(t), U} + u_s + v_s
+\log(\rho_{s,t}) = \alpha + (\beta_T X_T + \beta_L X_L + \beta_S X_S + \beta_{T,L} X_T X_L + \beta_{T,S} X_T X_S + \beta_{L,S} X_L X_S + \beta_{T,L,S} X_T X_L X_S + \beta_A X_A)_K + \beta_N X_N + \beta_{C,U} X_{C,U} + \delta_{w(t),U} + u_s + v_s
 $$
 
 During model fitting and cross-validation, we also tested this formulation with a temporal random effect $\delta_{a(t)}$ to account for interannual variation in dengue cases as an independent and identically distributed (IID), RW1, and RW2 model for each epidemiological year (spanning EW41 to EW40). However, the models without the interannual random effect were found to have an enhanced predictive performance during cross-validation.
